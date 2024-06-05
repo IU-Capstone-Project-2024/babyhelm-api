@@ -6,13 +6,21 @@ authors = ["i.shamsutdinov", "n.bagrov", "s.lekhtin", "e.solodovnikov", "e.salni
 license = "LICENSE"
 readme = "README.md"
 
+[tool.poetry.scripts]
+babyhelm-server = "babyhelm.app:main"
+
 [tool.poetry.dependencies]
 python = "^3.10"
-
+fastapi = "^0.111.0"
+dependency-injector = "^4.41.0"
 
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.4.8"
 pytest = "^8.2.2"
+taskipy = "^1.12.2"
+
+[tool.taskipy.tasks]
+babyhelm-dev = { cmd = "babyhelm-server --config ./local/config.dev.yaml --reload --log-level=debug", help = "Start BabyHelm dev server" }
 
 [build-system]
 requires = ["poetry-core"]
