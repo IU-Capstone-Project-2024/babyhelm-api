@@ -1,0 +1,15 @@
+[tool.poetry]
+name = "babyhelm"
+version = "0.1.1"
+description = "Babyhelm project backend"
+authors = ["i.shamsutdinov", "n.bagrov", "s.lekhtin", "e.solodovnikov", "e.salnikov"]
+license = "LICENSE"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
