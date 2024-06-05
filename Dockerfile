@@ -45,8 +45,6 @@ WORKDIR /app
 
 EXPOSE 8000
 
-CMD ["uvicorn", "main:app"]
-
 # Final stage for development
 FROM python-base as development
 ENV FASTAPI_ENV=development
@@ -59,4 +57,3 @@ WORKDIR /app
 
 EXPOSE 8000
 
-CMD ["uvicorn", "--reload", "main:app"]
