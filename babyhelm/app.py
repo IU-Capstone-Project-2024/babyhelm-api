@@ -30,7 +30,6 @@ class ArgsNamespace(argparse.Namespace):
     workers: int
     debug: bool
     reload: bool
-    server_header: bool
     log_level: str
     lifespan: str
 
@@ -75,7 +74,6 @@ def create_app(container: ApplicationContainer | None = None):
 
     app.state.container = container
 
-    # app.state.domain = container.config.domain()
     return app
 
 
