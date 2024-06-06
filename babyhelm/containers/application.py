@@ -8,7 +8,7 @@ from babyhelm.containers.services import ServicesContainer
 
 
 class ApplicationContainer(DeclarativeContainer):
-    """Application container."""
+    """Application container. Will be used in all dependency injections."""
 
     wiring_config: WiringConfiguration = WiringConfiguration(
         modules=[
