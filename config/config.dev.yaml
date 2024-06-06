@@ -1,2 +1,6 @@
 ---
 debug: True
+database:
+  url: "postgresql+asyncpg://postgres:postgres@localhost:5432/postgres"
+  echo: True
+  expire_on_commit: True

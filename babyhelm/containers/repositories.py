@@ -1,12 +1,12 @@
-"""."""
-
 from dependency_injector.containers import DeclarativeContainer
 from dependency_injector.providers import (
     Configuration,
-    DependenciesContainer,
+    DependenciesContainer, Factory,
 )
+from dependency_injector.providers import Provider
 
 from babyhelm.containers.gateways import GatewaysContainer
+from babyhelm.repositories.user import UserRepository
 
 
 class RepositoriesContainer(DeclarativeContainer):
@@ -14,3 +14,7 @@ class RepositoriesContainer(DeclarativeContainer):
 
     config: Configuration = Configuration()
     gateways: GatewaysContainer = DependenciesContainer()
+
+    user: Provider[UserRepository] = Factory[UserRepository](
+        UserRepository, db=gateways.db
+    )

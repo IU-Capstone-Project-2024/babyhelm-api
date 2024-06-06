@@ -1,6 +1,6 @@
 """redirector.containers.application."""
 from dependency_injector.containers import DeclarativeContainer, WiringConfiguration
-from dependency_injector.providers import Configuration
+from dependency_injector.providers import Configuration, Container
 
 from babyhelm.containers.gateways import GatewaysContainer
 from babyhelm.containers.repositories import RepositoriesContainer
@@ -12,11 +12,23 @@ class ApplicationContainer(DeclarativeContainer):
 
     wiring_config: WiringConfiguration = WiringConfiguration(
         modules=[
-
+            "babyhelm.routers.test",
         ],
     )
+
     config: Configuration = Configuration()
 
-    gateways: GatewaysContainer = None
-    repositories: RepositoriesContainer = None
-    services: ServicesContainer = None
+    gateways: GatewaysContainer = Container[GatewaysContainer](
+        GatewaysContainer, config=config
+    )
+    repositories: RepositoriesContainer = Container[RepositoriesContainer](
+        RepositoriesContainer,
+        config=config,
+        gateways=gateways,
+    )
+    services: ServicesContainer = Container[ServicesContainer](
+        ServicesContainer,
+        config=config,
+        gateways=gateways,
+        repositories=repositories,
+    )
