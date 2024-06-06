@@ -8,5 +8,5 @@ lint:
 format:
 	poetry run ruff format .
 
-unit-test:
+unit-tests:
 	poetry run pytest tests/unit
