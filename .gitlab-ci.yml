@@ -21,7 +21,7 @@ unit-tests:
   stage: test
   image: $IMAGE_NAME:$CI_COMMIT_SHORT_SHA-dev
   script:
-    - make unit-test
+    - poetry run pytest tests/unit
 
 deploy-dev:
   stage: deploy
