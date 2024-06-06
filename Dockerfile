@@ -1,40 +1,38 @@
-FROM python:3.12-slim as python-base
+FROM python:3.11-slim-buster
 
-ENV PYTHONUNBUFFERED=1 \
-    PYTHONDONTWRITEBYTECODE=1 \
-    PIP_NO_CACHE_DIR=off \
-    PIP_DISABLE_PIP_VERSION_CHECK=on \
+ARG POETRY_AUTH
+ARG CI_COMMIT_SHORT_SHA="-"
+
+ENV PYTHONFAULTHANDLER=1 \
+    PYTHONHASHSEED=random \
+    PYTHONUNBUFFERED=1 \
     PIP_DEFAULT_TIMEOUT=100 \
-    POETRY_HOME="/opt/poetry" \
-    POETRY_VIRTUALENVS_IN_PROJECT=true \
-    POETRY_NO_INTERACTION=1 \
-    PYSETUP_PATH="/opt/pysetup" \
-    VENV_PATH="/opt/pysetup/.venv"
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    PIP_NO_CACHE_DIR=1 \
+    POETRY_VERSION=1.8.3 \
+    CI_COMMIT_SHORT_SHA=$CI_COMMIT_SHORT_SHA
 
+RUN useradd -ms /bin/bash babyhelm
 
-ENV PATH="$POETRY_HOME/bin:$VENV_PATH/bin:$PATH"
-
-
-FROM python-base as builder-base
 RUN apt-get update \
-    && apt-get install --no-install-recommends -y \
-        curl \
-        build-essential
+    && apt-get install -y gcc \
+    && rm -rf /var/lib/apt/lists/*
 
-RUN curl -sSL https://install.python-poetry.org | python -
-
-WORKDIR $PYSETUP_PATH
-COPY poetry.lock pyproject.toml ./
-
-RUN poetry install
-
-FROM python-base as development
-ENV FASTAPI_ENV=development
-WORKDIR $PYSETUP_PATH
-
-COPY --from=builder-base $POETRY_HOME $POETRY_HOME
-COPY --from=builder-base $PYSETUP_PATH $PYSETUP_PATH
+RUN mkdir -p ~/.config/pypoetry/ \
+    && echo "${POETRY_AUTH}" > ~/.config/pypoetry/auth.toml \
+    && pip install -U "poetry==$POETRY_VERSION" \
+    && poetry config virtualenvs.create false \
+    && mkdir -p /app
 
 WORKDIR /app
 
-EXPOSE 8000
+COPY ./poetry.lock ./pyproject.toml ./README.md /app/
+COPY ./babyhelm /app/babyhelm
+
+RUN --mount=type=cache,target=/root/.cache poetry install --only main --no-interaction --no-ansi
+
+RUN apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+USER babyhelm
