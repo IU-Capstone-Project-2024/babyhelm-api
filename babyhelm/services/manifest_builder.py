@@ -20,8 +20,15 @@ class ManifestBuilderService:
     def service_template(self) -> Template:
         return self.template_env.get_template("service.j2")
 
+    @cached_property
+    def hpa_template(self) -> Template:
+        return self.template_env.get_template("hpa.j2")
+
     def render_deployment_manifest(self, values: Values) -> str:
         return self.deployment_template.render(Values=values)
 
     def render_service_manifest(self, values: Values) -> str:
         return self.service_template.render(Values=values)
+
+    def render_hpa_manifest(self, values: Values) -> str:
+        return self.hpa_template.render(Values=values)

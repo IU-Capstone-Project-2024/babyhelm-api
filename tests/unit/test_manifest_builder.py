@@ -86,6 +86,38 @@ def service_as_dict() -> dict:
     }
 
 
+@pytest.fixture()
+def hpa_as_dict() -> dict:
+    return {
+        "apiVersion": "autoscaling/v2",
+        "kind": "HorizontalPodAutoscaler",
+        "metadata": {
+            "name": "my-app-autoscaler"
+        },
+        "spec": {
+            "maxReplicas": 3,
+            "metrics": [
+                {
+                    "resource": {
+                        "name": "cpu",
+                        "target": {
+                            "averageUtilization": 50,
+                            "type": "Utilization"
+                        }
+                    },
+                    "type": "Resource"
+                }
+            ],
+            "minReplicas": 1,
+            "scaleTargetRef": {
+                "apiVersion": "apps/v1",
+                "kind": "Deployment",
+                "name": "my-app"
+            }
+        }
+    }
+
+
 class TestManifestBuilder:
     def test_build_deployment_manifest(self,
                                        builder: ManifestBuilderService,
@@ -101,10 +133,18 @@ class TestManifestBuilder:
         manifest = builder.render_service_manifest(app_values)
         assert yaml.safe_load(manifest) == service_as_dict
 
+    def test_build_hpa_manifest(self,
+                                builder: ManifestBuilderService,
+                                app_values: Values,
+                                hpa_as_dict: dict):
+        manifest = builder.render_hpa_manifest(app_values)
+        assert yaml.safe_load(manifest) == hpa_as_dict
+
     def test_manifests_endpoint(self,
                                 fastapi_test_client: TestClient,
                                 deployment_as_dict: dict,
-                                service_as_dict: dict):
+                                service_as_dict: dict,
+                                hpa_as_dict: dict):
         response = fastapi_test_client.post(
                 "/manifests/render",
                 json={
@@ -123,3 +163,4 @@ class TestManifestBuilder:
         assert response_data["message"] == "Manifests rendered"
         assert response_data["deployment"] == deployment_as_dict
         assert response_data["service"] == service_as_dict
+        assert response_data["hpa"] == hpa_as_dict

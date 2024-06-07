@@ -21,11 +21,13 @@ async def render_manifests(
 ) -> JSONResponse:
     deployment_manifest = manifest_builder_service.render_deployment_manifest(values)
     service_manifest = manifest_builder_service.render_service_manifest(values)
+    hpa_manifest = manifest_builder_service.render_hpa_manifest(values)
     return JSONResponse(
             content={
                 "message": "Manifests rendered",
                 "deployment": yaml.safe_load(deployment_manifest),
-                "service": yaml.safe_load(service_manifest)
+                "service": yaml.safe_load(service_manifest),
+                "hpa": yaml.safe_load(hpa_manifest),
             },
             status_code=status.HTTP_200_OK
     )
