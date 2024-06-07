@@ -6,6 +6,7 @@ import fastapi
 import uvicorn
 
 from babyhelm.containers.application import ApplicationContainer
+from babyhelm.routers.manifest_builder import router as manifest_builder_router
 
 
 def get_container() -> ApplicationContainer:
@@ -70,7 +71,7 @@ def create_app(container: ApplicationContainer | None = None):
         docs_url="/docs" if debug is True else None,
     )
 
-    # app.include_router(router_tg, tags=["tg"])
+    app.include_router(manifest_builder_router)
 
     app.state.container = container
 
