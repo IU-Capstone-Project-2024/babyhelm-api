@@ -22,6 +22,7 @@ unit-tests:
   image: $IMAGE_NAME:$CI_COMMIT_SHORT_SHA-dev
   before_script:
     - poetry install --only dev
+    - poetry install
   script:
     - poetry run pytest tests/unit
 

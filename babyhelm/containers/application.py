@@ -11,24 +11,23 @@ class ApplicationContainer(DeclarativeContainer):
     """Application container. Will be used in all dependency injections."""
 
     wiring_config: WiringConfiguration = WiringConfiguration(
-        modules=[
-            "babyhelm.routers.test",
-        ],
+            modules=[
+                "babyhelm.routers.manifest_builder",
+            ],
     )
-
     config: Configuration = Configuration()
 
     gateways: GatewaysContainer = Container[GatewaysContainer](
-        GatewaysContainer, config=config
+            GatewaysContainer, config=config
     )
     repositories: RepositoriesContainer = Container[RepositoriesContainer](
-        RepositoriesContainer,
-        config=config,
-        gateways=gateways,
+            RepositoriesContainer,
+            config=config,
+            gateways=gateways,
     )
     services: ServicesContainer = Container[ServicesContainer](
-        ServicesContainer,
-        config=config,
-        gateways=gateways,
-        repositories=repositories,
+            ServicesContainer,
+            config=config,
+            gateways=gateways,
+            repositories=repositories,
     )
