@@ -2,15 +2,14 @@
 import contextlib
 import typing
 
-from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, create_async_engine
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, create_async_engine, async_sessionmaker
 
 
 class Database(object):
     """Database."""
 
     _engine: AsyncEngine
-    _factory: sessionmaker
+    _factory: async_sessionmaker
 
     def __init__(
             self,
@@ -27,12 +26,9 @@ class Database(object):
             pool_size=pool_size,
             max_overflow=max_overflow,
         )
-        self._factory = sessionmaker(
-            self._engine,
+        self._factory = async_sessionmaker(
+            bind=self._engine,
             expire_on_commit=expire_on_commit,
-            class_=AsyncSession,
-            autocommit=False,
-            autoflush=False,
         )
 
     @contextlib.asynccontextmanager

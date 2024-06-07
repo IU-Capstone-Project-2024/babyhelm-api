@@ -16,5 +16,4 @@ async def create_user(
             Provide[ApplicationContainer.services.user],
         ),
 ):
-    res = await user_service.create(email=user_data.email, row_password=user_data.password)
-    return res
+    await user_service.create(email=user_data.email, row_password=user_data.row_password)

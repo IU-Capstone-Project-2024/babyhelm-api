@@ -7,10 +7,7 @@ class UserService:
     def __init__(self, user_repository: UserRepository):
         self.user_repository = user_repository
 
-    def create(self, email: str, row_password: str):
-        # TODO слой обращений к базе данных
-        #  Проверить что такого пользователя еще нет по email
-        #  Захэшировать пароль
-        ...
+    async def create(self, email: str, row_password: str):
+        await self.user_repository.create(email, row_password)
 
 
