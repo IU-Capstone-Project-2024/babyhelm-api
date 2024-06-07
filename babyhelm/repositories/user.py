@@ -1,4 +1,3 @@
-import sqlalchemy as sa
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from babyhelm.gateways.database import Database
@@ -11,6 +10,10 @@ class UserRepository:
 
     def __init__(self, db: Database):
         self.db = db
+
+    async def create(self, email: str, hashed_password: bytes, session: AsyncSession | None = None):
+        # TODO Обработать случай, когда пользователь с таким email существует
+        ...
 
     async def get(self, *args, session: AsyncSession | None = None) -> int:
         """Get user."""
