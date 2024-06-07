@@ -10,7 +10,6 @@ class UserRepository:
     db: Database
 
     def __init__(self, db: Database):
-        """."""
         self.db = db
 
     async def get(self, *args, session: AsyncSession | None = None) -> int:

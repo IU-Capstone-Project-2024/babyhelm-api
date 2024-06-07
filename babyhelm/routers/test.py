@@ -1,5 +1,6 @@
 import fastapi
 from dependency_injector.wiring import inject, Provide
+from starlette.responses import JSONResponse
 
 from babyhelm.containers.application import ApplicationContainer
 from babyhelm.repositories.user import UserRepository
@@ -14,6 +15,5 @@ async def save_tg_user(
             Provide[ApplicationContainer.repositories.user],
         ),
 ) -> int:
-    """Save, update or do nothing with telegram user."""
     res = await user_repository.get()
     return res
