@@ -7,6 +7,7 @@ import uvicorn
 
 from babyhelm.containers.application import ApplicationContainer
 from babyhelm.routers.manifest_builder import router as manifest_builder_router
+from babyhelm.routers.user import router as user_router
 
 
 def get_container() -> ApplicationContainer:
@@ -72,6 +73,7 @@ def create_app(container: ApplicationContainer | None = None):
     )
 
     app.include_router(manifest_builder_router)
+    app.include_router(user_router)
 
     app.state.container = container
 

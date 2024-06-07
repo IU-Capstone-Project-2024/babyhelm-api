@@ -13,6 +13,7 @@ class ApplicationContainer(DeclarativeContainer):
     wiring_config: WiringConfiguration = WiringConfiguration(
             modules=[
                 "babyhelm.routers.manifest_builder",
+                "babyhelm.routers.user",
             ],
     )
     config: Configuration = Configuration()

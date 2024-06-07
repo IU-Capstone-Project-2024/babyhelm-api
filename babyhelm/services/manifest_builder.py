@@ -1,9 +1,7 @@
-import json
 from functools import cached_property
 from pathlib import Path
 
 import jinja2
-import yaml
 from jinja2 import Template
 
 from babyhelm.schemas.manifest_builder import Values
