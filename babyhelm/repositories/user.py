@@ -3,7 +3,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from babyhelm.exceptions.http import BadRequestError
 from babyhelm.gateways.database import Database
-import sqlalchemy as sa
 
 from babyhelm.models import User
 
