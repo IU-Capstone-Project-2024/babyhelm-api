@@ -19,7 +19,7 @@ class ServicesContainer(DeclarativeContainer):
     repositories: RepositoriesContainer = DependenciesContainer()
     manifest_builder: Provider[ManifestBuilderService] = Factory[ManifestBuilderService](
         ManifestBuilderService,
-        templates_directory="babyhelm/templates",  # TODO populate yaml file and take value from it
+        templates_directory=config.templates.path,
     )
     user: Provider[UserService] = Factory[UserService](
         UserService,
