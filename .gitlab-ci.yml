@@ -46,7 +46,9 @@ unit-tests:
 
 deploy:
   stage: deploy
-  image: alpine/helm
+  image:
+    name: alpine/helm
+    entrypoint: [""]
   rules:
     - if: $CI_COMMIT_BRANCH == "main"
   script:
