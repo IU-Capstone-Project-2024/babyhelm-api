@@ -11,4 +11,4 @@ class User(Base, TimeStampMixin, IdMixin):
     email: Mapped[str] = mapped_column(nullable=False, unique=True)
     password: Mapped[str] = mapped_column(nullable=False)
 
-    projects: Mapped[list["UserProjectAssociation"]] = relationship(back_populates="users")
+    projects: Mapped[list["UserProjectAssociation"]] = relationship(back_populates="user")

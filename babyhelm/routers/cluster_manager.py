@@ -19,6 +19,7 @@ async def create_namespace(
         )
 ) -> JSONResponse:
     # TODO wrtie logic of creation and adding to db
+    await cluster_manager_service.create_namespace(values.project)
     return JSONResponse(
         content={
             "message": f"Project {values.project.name} is created"

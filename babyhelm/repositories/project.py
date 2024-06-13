@@ -22,7 +22,7 @@ class ProjectRepository:
 
         async with self.db.session(session) as session_:
             statement = sa.select(User).where(User.id.in_(user_ids))
-            result = session_.execute(statement)
+            result = await session_.execute(statement)
             for user in result.scalars():
                 user.projects.append(association)
             await session_.commit()

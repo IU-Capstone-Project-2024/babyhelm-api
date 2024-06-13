@@ -12,6 +12,6 @@ class Project(Base, TimeStampMixin, IdMixin):
     name: Mapped[str] = mapped_column(nullable=False, unique=True)
 
     # many-to-many
-    users: Mapped[list["UserProjectAssociation"]] = relationship(back_populates="projects")
+    users: Mapped[list["UserProjectAssociation"]] = relationship(back_populates="project")
 
     applications: Mapped[list["Application"]] = relationship("Application", back_populates="project")

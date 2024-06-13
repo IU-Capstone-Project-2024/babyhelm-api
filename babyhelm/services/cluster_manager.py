@@ -20,7 +20,7 @@ class ClusterManagerService:
         self.core_v1_api = client.CoreV1Api()
         self.apps_v1_api = client.AppsV1Api()
 
-    def create_namespace(self, namespace_data: Metadata):
+    async def create_namespace(self, namespace_data: Metadata):
         namespace = client.V1Namespace(
             metadata=client.V1ObjectMeta(name=namespace_data.name,
                                          annotations=namespace_data.annotations,
@@ -28,7 +28,7 @@ class ClusterManagerService:
         )
         try:
             api_response = self.core_v1_api.create_namespace(body=namespace)
-            self.project_repository.create(namespace_data.name, [])  # TODO add user_id
+            # await self.project_repository.create(namespace_data.name, []) # TODO fix db
             print(f"Namespace '{namespace_data.name}' created successfully.")
             return api_response
         except client.exceptions.ApiException as e:

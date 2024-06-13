@@ -20,6 +20,5 @@ class RepositoriesContainer(DeclarativeContainer):
         UserRepository, db=gateways.db
     )
     project: Provider[ProjectRepository] = Factory[ProjectRepository](
-        ProjectRepository,
-        db=gateways.db
+        ProjectRepository, db=gateways.db
     )

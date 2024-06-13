@@ -28,5 +28,6 @@ class ServicesContainer(DeclarativeContainer):
     )
     cluster_manager: Provider[ClusterManagerService] = Factory[ClusterManagerService](
         ClusterManagerService,
-        project_repository=repositories.project
+        project_repository=repositories.project,
+        kubeconfig_path="local/kubeconfig.yaml"
     )
