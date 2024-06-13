@@ -9,12 +9,12 @@ from babyhelm.repositories.user import UserRepository
 from babyhelm.services.user import UserService
 
 
-@pytest.fixture(name="user_repo")
+@pytest.fixture()
 def user_repository_fixture():
     return mock.AsyncMock(spec=UserRepository)
 
 
-@pytest.fixture(name="user_service")
+@pytest.fixture()
 def user_service(user_repo) -> UserService:
     return UserService(user_repo)
 
