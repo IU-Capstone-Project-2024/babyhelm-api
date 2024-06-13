@@ -41,8 +41,7 @@ release:
   script:
     - docker info
     - docker login $CI_REGISTRY -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD
-    - docker pull $IMAGE_NAME:$CI_COMMIT_SHORT_SHA-dev
-    - docker tag $IMAGE_NAME:$CI_COMMIT_SHORT_SHA-dev $IMAGE_NAME:latest
+    - docker build -t $IMAGE_NAME:latest .
     - docker push $IMAGE_NAME:latest
 
 deploy:
