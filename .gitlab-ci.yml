@@ -9,6 +9,8 @@ variables:
 build-dev:
   stage: build
   image: docker:dind
+  rules:
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
   services:
     - docker:dind
   script:
@@ -19,14 +21,36 @@ build-dev:
 
 unit-tests:
   stage: test
-  image: $IMAGE_NAME:$CI_COMMIT_SHORT_SHA-dev
+  image:
+    name: $IMAGE_NAME:$CI_COMMIT_SHORT_SHA-dev
+    entrypoint: [ "" ]
+  rules:
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
   before_script:
     - poetry install --only dev
-    - poetry install
   script:
     - poetry run pytest tests/unit
 
-deploy-dev:
-  stage: deploy
+release:
+  stage: build
+  image: docker:dind
+  rules:
+    - if: $CI_COMMIT_BRANCH == 'main'
+  services:
+    - docker:dind
   script:
-    - echo "Deploying to dev..." # TODO
+    - docker info
+    - docker login $CI_REGISTRY -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD
+    - docker pull $IMAGE_NAME:$CI_COMMIT_SHORT_SHA-dev
+    - docker tag $IMAGE_NAME:$CI_COMMIT_SHORT_SHA-dev $IMAGE_NAME:latest
+    - docker push $IMAGE_NAME:latest
+
+deploy:
+  stage: deploy
+  image: alpine/helm
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+  before_script:
+    - echo $DEV_CLUSTER_KUBECONFIG > ~/.kube/config
+  script:
+    - helm upgrade --install babyhelm config/babyhelm --namespace=babyhelm
