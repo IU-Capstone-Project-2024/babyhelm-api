@@ -46,12 +46,8 @@ release:
 
 deploy:
   stage: deploy
-  image:
-    name: alpine/helm
-    entrypoint: [""]
+  image: alpine/helm
   rules:
     - if: $CI_COMMIT_BRANCH == "main"
-  before_script:
-    - echo $DEV_CLUSTER_KUBECONFIG > ~/.kube/config
   script:
-    - helm upgrade --install babyhelm config/babyhelm --namespace=babyhelm
+    - helm upgrade --install babyhelm config/babyhelm --namespace=babyhelm --kubeconfig $DEV_CLUSTER_KUBECONFIG
