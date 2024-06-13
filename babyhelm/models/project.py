@@ -3,8 +3,6 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from babyhelm.models.base import Base
 from babyhelm.models.mixins import TimeStampMixin, IdMixin
-from babyhelm.models.associations import UserProjectAssociation
-from babyhelm.models.application import Application
 
 
 class Project(Base, TimeStampMixin, IdMixin):

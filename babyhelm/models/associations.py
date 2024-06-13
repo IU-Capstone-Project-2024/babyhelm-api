@@ -1,12 +1,12 @@
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import Integer, ForeignKey
+from sqlalchemy import ForeignKey
 from babyhelm.models.base import Base
 from babyhelm.models.user import User
 from babyhelm.models.project import Project
 
 
 class UserProjectAssociation(Base):
-    __tablename__ = "user_project_association"
+    __tablename__ = "users_projects"
 
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), primary_key=True)
     project_id: Mapped[int] = mapped_column(ForeignKey("projects.id"), primary_key=True)
