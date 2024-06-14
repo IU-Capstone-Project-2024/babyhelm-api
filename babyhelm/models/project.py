@@ -1,4 +1,3 @@
-from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from babyhelm.models.base import Base
@@ -14,4 +13,4 @@ class Project(Base, TimeStampMixin, IdMixin):
     # many-to-many
     users: Mapped[list["UserProjectAssociation"]] = relationship(back_populates="project")
 
-    applications: Mapped[list["Application"]] = relationship("Application", back_populates="project")
+    applications: Mapped[list["Application"]] = relationship(back_populates="project")

@@ -14,4 +14,4 @@ class Application(Base, TimeStampMixin, IdMixin):
     project_id: Mapped[int] = mapped_column(ForeignKey("projects.id"), nullable=False, unique=True)
     # TODO add app-related configuration info
 
-    project: Mapped["Project"] = relationship("Project", back_populates="applications")
+    project: Mapped["Project"] = relationship(back_populates="applications")

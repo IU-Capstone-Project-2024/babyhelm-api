@@ -28,7 +28,7 @@ class ClusterManagerService:
         )
         try:
             api_response = self.core_v1_api.create_namespace(body=namespace)
-            # await self.project_repository.create(namespace_data.name, []) # TODO fix db
+            await self.project_repository.create(namespace_data.name)
             print(f"Namespace '{namespace_data.name}' created successfully.")
             return api_response
         except client.exceptions.ApiException as e:
