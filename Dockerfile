@@ -24,9 +24,10 @@ RUN mkdir -p ~/.config/pypoetry/ \
 
 WORKDIR /app
 
-COPY ./poetry.lock ./pyproject.toml ./README.md /app/
+COPY ./poetry.lock ./pyproject.toml ./README.md ./alembic.ini /app/
 COPY ./babyhelm /app/babyhelm
 COPY ./config /app/local
+COPY ./alembic /app/alembic
 
 RUN poetry install --no-interaction --no-ansi
 
