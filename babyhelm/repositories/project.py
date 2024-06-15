@@ -25,3 +25,10 @@ class ProjectRepository:
 
 
     # TODO add users to project
+
+
+    async def delete(self, name: str, session: AsyncSession | None = None):
+        async with self.db.session(session) as session:
+            stmt = sa.delete(Project).where(Project.name == name)
+            await session.execute(stmt)
+            await session.commit()
