@@ -5,6 +5,7 @@ app:
     replicas: 2
     image: registry.gitlab.com/babyhelm/babyhelm:latest
     port: 8000
+    running_env: production
   service:
     postfix: svc
     type: LoadBalancer
@@ -12,3 +13,10 @@ app:
     ports:
       port: 80
       targetPort: 8000
+  config:
+    postfix: configmap
+    file: prod.yaml
+    path: /app/config
+
+env:
+  database_url: fill-me

@@ -1,4 +1,5 @@
 import argparse
+import logging
 import os
 import typing
 
@@ -83,6 +84,9 @@ def create_app(container: ApplicationContainer | None = None):
 def main() -> None:
     """."""
     args: typing.Type[ArgsNamespace] = server_parser_args()
+    if os.environ.get("RUNNING_ENV") == 'production':
+        args.config = "/app/config/prod.yaml"
+        logging.info("Running in production mode")
 
     os.environ["CONFIG"] = args.config
 

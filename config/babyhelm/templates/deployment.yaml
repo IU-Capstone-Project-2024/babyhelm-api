@@ -23,5 +23,18 @@ spec:
           image: {{ .Values.app.deployment.image }}
           ports:
             - containerPort: {{ .Values.app.deployment.port }}
+          env:
+            - name: RUNNING_ENV
+              value: {{ .Values.app.deployment.running_env }}
+          volumeMounts:
+            - name: config-volume
+              mountPath: {{ .Values.app.config.path }}
+      volumes:
+        - name: config-volume
+          configMap:
+            name: {{ .Values.app.name }}-configmap
+            items:
+              - key: {{ .Values.app.config.file }}
+                path: {{ .Values.app.config.file }}
       imagePullSecrets:
         - name: gitlab
