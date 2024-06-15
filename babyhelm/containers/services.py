@@ -9,6 +9,7 @@ from babyhelm.containers.gateways import GatewaysContainer
 from babyhelm.containers.repositories import RepositoriesContainer
 from babyhelm.services.manifest_builder import ManifestBuilderService
 from babyhelm.services.user import UserService
+from babyhelm.services.cluster_manager import ClusterManagerService
 
 
 class ServicesContainer(DeclarativeContainer):
@@ -24,4 +25,9 @@ class ServicesContainer(DeclarativeContainer):
     user: Provider[UserService] = Factory[UserService](
         UserService,
         user_repository=repositories.user,
+    )
+    cluster_manager: Provider[ClusterManagerService] = Factory[ClusterManagerService](
+        ClusterManagerService,
+        project_repository=repositories.project,
+        kubeconfig_path=config.kubeconfig.path
     )
