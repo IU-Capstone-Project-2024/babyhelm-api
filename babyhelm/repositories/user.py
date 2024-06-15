@@ -1,7 +1,8 @@
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from babyhelm.exceptions.http import BadRequestError
 from babyhelm.gateways.database import Database
-import sqlalchemy as sa
 
 from babyhelm.models import User
 
@@ -15,11 +16,13 @@ class UserRepository:
         self.db = db
 
     async def create(self, email: str, hashed_password: str, session: AsyncSession | None = None):
-        # TODO Обработать случай, когда пользователь с таким email существует
         user = User(email=email, password=hashed_password)
-        async with self.db.session(session) as session:
-            session.add(user)
-            await session.commit()
+        try:
+            async with self.db.session(session) as session_:
+                session_.add(user)
+                await session_.commit()
+        except IntegrityError:
+            raise BadRequestError("User already exists.")
 
     async def get(self, *args, session: AsyncSession | None = None) -> int:
         """Get user."""

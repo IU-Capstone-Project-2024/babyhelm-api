@@ -8,7 +8,11 @@ from babyhelm.containers.services import ServicesContainer
 
 
 class ApplicationContainer(DeclarativeContainer):
-    """Application container. Will be used in all dependency injections."""
+    """
+    Application container. Will be used in all dependency injections.
+
+    You must register all routes in wiring_config.
+    """
 
     wiring_config: WiringConfiguration = WiringConfiguration(
             modules=[
