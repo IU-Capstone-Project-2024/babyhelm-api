@@ -79,7 +79,7 @@ def create_app(container: ApplicationContainer | None = None):
             openapi_url="/api/v1/openapi.json" if debug is True else None,
             docs_url="/docs" if debug is True else None,
     )
-    Instrumentator().instrument(app).expose(app)
+    Instrumentator(excluded_handlers=["/metrics"]).instrument(app).expose(app)
 
     for router in routers_list:
         app.include_router(router)
