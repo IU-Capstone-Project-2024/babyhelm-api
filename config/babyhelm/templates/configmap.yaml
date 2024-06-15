@@ -13,3 +13,5 @@ data:
         expire_on_commit: False
       templates:
         path: "babyhelm/templates"
+      cubeconfig:
+        path: "local/kubeconfig.yaml"
