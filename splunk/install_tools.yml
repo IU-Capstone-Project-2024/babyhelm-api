@@ -1,0 +1,147 @@
+---
+- name: Install Docker, kind, Helm, and kubectl on Ubuntu
+  hosts: all
+  become: yes
+
+  vars:
+    kind_version: "latest"
+    helm_version: "latest"
+
+  tasks:
+    - name: Update apt package index
+      apt:
+        update_cache: yes
+
+    - name: Install necessary dependencies for Docker
+      apt:
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - gnupg
+          - lsb-release
+        state: present
+
+    - name: Add Docker's official GPG key
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+
+    - name: Add Docker's APT repository
+      apt_repository:
+        repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable
+        state: present
+
+    - name: Install Docker
+      apt:
+        name: docker-ce
+        state: latest
+
+    - name: Ensure Docker service is enabled and started
+      service:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Fetch latest kind version
+      uri:
+        url: https://api.github.com/repos/kubernetes-sigs/kind/releases/latest
+        return_content: yes
+      register: kind_release
+
+    - name: Install kind
+      shell: |
+        curl -Lo ./kind https://kind.sigs.k8s.io/dl/{{ kind_release.json.tag_name }}/kind-linux-amd64
+        chmod +x ./kind
+        mv ./kind /usr/local/bin/kind
+      args:
+        creates: /usr/local/bin/kind
+
+    - name: Add Helm's official GPG key
+      apt_key:
+        url: https://baltocdn.com/helm/signing.asc
+        state: present
+
+    - name: Add Helm's APT repository
+      apt_repository:
+        repo: deb https://baltocdn.com/helm/stable/debian/ all main
+        state: present
+
+    - name: Fetch latest Helm version
+      uri:
+        url: https://api.github.com/repos/helm/helm/releases/latest
+        return_content: yes
+      register: helm_release
+
+    - name: Install Helm
+      shell: |
+        curl -Lo get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
+        chmod 700 get_helm.sh
+        ./get_helm.sh -v {{ helm_release.json.tag_name }}
+      args:
+        creates: /usr/local/bin/helm
+
+    - name: Determine latest kubectl version
+      command: curl -L -s https://dl.k8s.io/release/stable.txt
+      register: kubectl_stable_version
+
+    - name: Download kubectl binary
+      get_url:
+        url: "https://dl.k8s.io/release/{{ kubectl_stable_version.stdout }}/bin/linux/amd64/kubectl"
+        dest: /usr/local/bin/kubectl
+        mode: '0755'
+      register: download_kubectl
+      changed_when: download_kubectl.changed
+
+    - name: Download kubectl checksum file
+      get_url:
+        url: "https://dl.k8s.io/release/{{ kubectl_stable_version.stdout }}/bin/linux/amd64/kubectl.sha256"
+        dest: /tmp/kubectl.sha256
+
+    - name: Validate kubectl binary against checksum file
+      command: "echo \"$(cat /tmp/kubectl.sha256)  /usr/local/bin/kubectl\" | sha256sum --check --status"
+      register: kubectl_checksum
+      failed_when: kubectl_checksum.rc != 0
+
+    - name: Install kubectl if not already installed
+      command: "sudo install -o root -g root -m 0755 /usr/local/bin/kubectl /usr/local/bin/kubectl"
+      when: download_kubectl.changed and kubectl_checksum.rc == 0
+
+    - name: Remove kubectl checksum file
+      file:
+        path: /tmp/kubectl.sha256
+        state: absent
+      when: kubectl_checksum.rc == 0
+
+    - name: Verify Docker installation
+      command: docker --version
+      register: docker_version
+
+    - name: Verify kind installation
+      command: kind --version
+      register: kind_version
+
+    - name: Verify Helm installation
+      command: helm version
+      register: helm_version
+
+    - name: Verify kubectl installation
+      command: kubectl version --client=true
+      register: kubectl_version
+
+    - name: Display Docker version
+      debug:
+        msg: "Docker version: {{ docker_version.stdout }}"
+
+    - name: Display kind version
+      debug:
+        msg: "kind version: {{ kind_version.stdout }}"
+
+    - name: Display Helm version
+      debug:
+        msg: "Helm version: {{ helm_version.stdout }}"
+
+    - name: Display kubectl version
+      debug:
+        msg: "kubectl version: {{ kubectl_version.stdout }}"
+

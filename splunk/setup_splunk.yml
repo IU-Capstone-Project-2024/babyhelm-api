@@ -1,0 +1,46 @@
+---
+- name: Setup Splunk Docker Container
+  hosts: localhost
+  become: yes
+
+  tasks:
+    - name: Ensure Docker service is enabled and started
+      service:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Create Docker network for Splunk
+      docker_network:
+        name: splunk-net
+        state: present
+
+    - name: Create splunk-data directory
+      file:
+        path: /path/to/splunk-data  # Update with your desired path
+        state: directory
+
+    - name: Run Splunk container
+      docker_container:
+        name: splunk
+        image: splunk/splunk:8.2.1
+        state: started
+        restart_policy: always
+        env:
+          SPLUNK_START_ARGS: "--accept-license"
+          SPLUNK_PASSWORD: "splunktest"  # Set your desired admin password
+        ports:
+          - "8000:8000"
+        volumes:
+          - /path/to/splunk-data:/opt/splunk/var
+        networks:
+          - name: splunk-net
+
+    - name: Wait for Splunk container to be healthy
+      wait_for:
+        host: localhost
+        port: 8000
+        state: started
+        delay: 10
+        timeout: 120
+
