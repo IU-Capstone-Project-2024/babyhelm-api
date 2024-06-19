@@ -1,5 +1,6 @@
 from dependency_injector.wiring import Provide, inject
 from fastapi import APIRouter, Depends
+from starlette import status
 from starlette.responses import JSONResponse
 
 from babyhelm.containers.application import ApplicationContainer
@@ -17,4 +18,7 @@ async def render_manifests(
         Provide[ApplicationContainer.services.manifest_builder]
     ),
 ) -> JSONResponse:
-    return manifest_builder_service.render_application(application)
+    return JSONResponse(
+        content=manifest_builder_service.render_application(application).model_dump(),
+        status_code=status.HTTP_200_OK,
+    )
