@@ -1,6 +1,9 @@
+.stage:
+  image: "python:3.11"
+
 stages:
-  - build
   - test
+  - build
   - deploy
 
 variables:
@@ -15,6 +18,7 @@ default:
 
 test:
   stage: test
+  extends: ".stage"
   before_script:
     - !reference [ default, before_script ]
   script:
