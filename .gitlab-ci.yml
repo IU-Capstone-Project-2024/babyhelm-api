@@ -6,6 +6,7 @@ stages:
 variables:
   IMAGE_NAME: "registry.gitlab.com/babyhelm/babyhelm"
 
+
 build-dev:
   stage: build
   image: docker:dind
@@ -19,17 +20,16 @@ build-dev:
     - docker build -t $IMAGE_NAME:$CI_COMMIT_SHORT_SHA-dev .
     - docker push $IMAGE_NAME:$CI_COMMIT_SHORT_SHA-dev
 
-unit-tests:
+test-dev:
   stage: test
   image:
     name: $IMAGE_NAME:$CI_COMMIT_SHORT_SHA-dev
     entrypoint: [ "" ]
   rules:
     - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
-  before_script:
-    - poetry install --only dev
   script:
-    - poetry run pytest tests/unit
+    - pip install tox
+    - tox
 
 release:
   stage: build
@@ -44,11 +44,22 @@ release:
     - docker build -t $IMAGE_NAME:latest .
     - docker push $IMAGE_NAME:latest
 
+test-release:
+    stage: test
+    image:
+        name: $IMAGE_NAME:latest
+        entrypoint: [ "" ]
+    rules:
+        - if: $CI_COMMIT_BRANCH == 'main'
+    script:
+        - pip install tox
+        - tox
+
 deploy:
   stage: deploy
   image:
     name: alpine/helm
-    entrypoint: [""]
+    entrypoint: [ "" ]
   rules:
     - if: $CI_COMMIT_BRANCH == "main"
   script:

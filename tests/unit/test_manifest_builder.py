@@ -18,16 +18,8 @@ def application_values_as_dict() -> dict:
     return {
         "name": "some-app",
         "image": "some-image:latest",
-        "ports": {
-            "port": 80,
-            "targetPort": 8000
-        },
-        "envs": [
-            {
-                "name": "SOME_ENV",
-                "value": "SOME_VALUE"
-            }
-        ]
+        "ports": {"port": 80, "targetPort": 8000},
+        "envs": [{"name": "SOME_ENV", "value": "SOME_VALUE"}],
     }
 
 
@@ -42,22 +34,13 @@ def render_results() -> dict:
         "deployment": {
             "apiVersion": "apps/v1",
             "kind": "Deployment",
-            "metadata": {
-                "name": "some-app-deployment"
-            },
+            "metadata": {"name": "some-app-deployment"},
             "spec": {
                 "strategy": {
                     "type": "RollingUpdate",
-                    "rollingUpdate": {
-                        "maxSurge": 1,
-                        "maxUnavailable": 1
-                    }
+                    "rollingUpdate": {"maxSurge": 1, "maxUnavailable": 1},
                 },
-                "selector": {
-                    "matchLabels": {
-                        "app": "some-app"
-                    }
-                },
+                "selector": {"matchLabels": {"app": "some-app"}},
                 "replicas": 2,
                 "template": {
                     "spec": {
@@ -65,84 +48,58 @@ def render_results() -> dict:
                             {
                                 "name": "some-app-container",
                                 "image": "some-image:latest",
-                                "ports": [
-                                    {
-                                        "containerPort": 8000
-                                    }
-                                ],
-                                "env": [
-                                    {
-                                        "name": "SOME_ENV",
-                                        "value": "SOME_VALUE"
-                                    }
-                                ]
+                                "ports": [{"containerPort": 8000}],
+                                "env": [{"name": "SOME_ENV", "value": "SOME_VALUE"}],
                             }
                         ]
                     }
-                }
-            }
+                },
+            },
         },
         "service": {
             "apiVersion": "v1",
             "kind": "Service",
-            "metadata": {
-                "name": "some-app-svc",
-                "labels": {
-                    "app": "some-app"
-                }
-            },
+            "metadata": {"name": "some-app-svc", "labels": {"app": "some-app"}},
             "spec": {
                 "type": "LoadBalancer",
                 "loadBalancerClass": "tailscale",
-                "ports": [
-                    {
-                        "port": 80,
-                        "targetPort": 8000
-                    }
-                ],
-                "selector": {
-                    "app": "some-app"
-                }
-            }
+                "ports": [{"port": 80, "targetPort": 8000}],
+                "selector": {"app": "some-app"},
+            },
         },
         "hpa": {
             "apiVersion": "autoscaling/v2",
             "kind": "HorizontalPodAutoscaler",
-            "metadata": {
-                "name": "some-app-autoscaler"
-            },
+            "metadata": {"name": "some-app-autoscaler"},
             "spec": {
                 "maxReplicas": 5,
                 "metrics": [
                     {
                         "resource": {
                             "name": "cpu",
-                            "target": {
-                                "averageUtilization": 30,
-                                "type": "Utilization"
-                            }
+                            "target": {"averageUtilization": 30, "type": "Utilization"},
                         },
-                        "type": "Resource"
+                        "type": "Resource",
                     },
                     {
                         "resource": {
                             "name": "memory",
                             "target": {
                                 "type": "Utilization",
-                                "averageUtilization": 250
-                            }
+                                "averageUtilization": 250,
+                            },
                         },
-                        "type": "Resource"
-                    }
+                        "type": "Resource",
+                    },
                 ],
                 "minReplicas": 2,
                 "scaleTargetRef": {
                     "apiVersion": "apps/v1",
                     "kind": "Deployment",
-                    "name": "some-app-deployment"
-                }
-            }
-        }
+                    "name": "some-app-deployment",
+                },
+            },
+        },
     }
 
 
@@ -162,23 +119,25 @@ def invalid_application_values_as_dict(application_values_as_dict) -> dict:
 
 
 class TestManifestBuilder:
-
     @pytest.mark.parametrize("manifest_type", ["deployment", "service", "hpa"])
-    def test_build_manifests(self,
-                             builder: ManifestBuilderService,
-                             application_values: Application,
-                             render_results: dict,
-                             manifest_type: str):
+    def test_build_manifests(
+        self,
+        builder: ManifestBuilderService,
+        application_values: Application,
+        render_results: dict,
+        manifest_type: str,
+    ):
         manifests = builder.render_application(application_values)
         assert getattr(manifests, manifest_type) == render_results.get(manifest_type)
 
-    def test_manifests_endpoint(self,
-                                fastapi_test_client: TestClient,
-                                application_values_as_dict: dict,
-                                render_results: dict):
+    def test_manifests_endpoint(
+        self,
+        fastapi_test_client: TestClient,
+        application_values_as_dict: dict,
+        render_results: dict,
+    ):
         response = fastapi_test_client.post(
-                "/manifests/render",
-                json=application_values_as_dict
+            "/manifests/render", json=application_values_as_dict
         )
         assert response.status_code == 200
         response_data = response.json()
@@ -186,15 +145,19 @@ class TestManifestBuilder:
         assert response_data["service"] == render_results["service"]
         assert response_data["hpa"] == render_results["hpa"]
 
-    @pytest.mark.parametrize("invalid_input_type", ["invalid_name", "invalid_image", "invalid_env"])
-    def test_manifests_endpoint_validation(self,
-                                           fastapi_test_client: TestClient,
-                                           application_values_as_dict: dict,
-                                           render_results: dict,
-                                           invalid_application_values_as_dict: dict,
-                                           invalid_input_type: str):
+    @pytest.mark.parametrize(
+        "invalid_input_type", ["invalid_name", "invalid_image", "invalid_env"]
+    )
+    def test_manifests_endpoint_validation(
+        self,
+        fastapi_test_client: TestClient,
+        application_values_as_dict: dict,
+        render_results: dict,
+        invalid_application_values_as_dict: dict,
+        invalid_input_type: str,
+    ):
         response = fastapi_test_client.post(
-                "/manifests/render",
-                json=invalid_application_values_as_dict[invalid_input_type]
+            "/manifests/render",
+            json=invalid_application_values_as_dict[invalid_input_type],
         )
         assert response.status_code == 422

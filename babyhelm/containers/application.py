@@ -1,4 +1,3 @@
-"""redirector.containers.application."""
 from dependency_injector.containers import DeclarativeContainer, WiringConfiguration
 from dependency_injector.providers import Configuration, Container
 
@@ -15,25 +14,25 @@ class ApplicationContainer(DeclarativeContainer):
     """
 
     wiring_config: WiringConfiguration = WiringConfiguration(
-            modules=[
-                "babyhelm.routers.manifest_builder",
-                "babyhelm.routers.user",
-                "babyhelm.routers.cluster_manager"
-            ],
+        modules=[
+            "babyhelm.routers.manifest_builder",
+            "babyhelm.routers.user",
+            "babyhelm.routers.cluster_manager",
+        ],
     )
     config: Configuration = Configuration()
 
     gateways: GatewaysContainer = Container[GatewaysContainer](
-            GatewaysContainer, config=config
+        GatewaysContainer, config=config
     )
     repositories: RepositoriesContainer = Container[RepositoriesContainer](
-            RepositoriesContainer,
-            config=config,
-            gateways=gateways,
+        RepositoriesContainer,
+        config=config,
+        gateways=gateways,
     )
     services: ServicesContainer = Container[ServicesContainer](
-            ServicesContainer,
-            config=config,
-            gateways=gateways,
-            repositories=repositories,
+        ServicesContainer,
+        config=config,
+        gateways=gateways,
+        repositories=repositories,
     )

@@ -1,11 +1,8 @@
+import sqlalchemy as sa
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from babyhelm.gateways.database import Database
-import sqlalchemy as sa
-
 from babyhelm.models.project import Project
-from babyhelm.models.user import User
-from babyhelm.models.associations import UserProjectAssociation
 
 
 class ProjectRepository:
@@ -23,9 +20,7 @@ class ProjectRepository:
             session.add(project)
             await session.commit()
 
-
     # TODO add users to project
-
 
     async def delete(self, name: str, session: AsyncSession | None = None):
         async with self.db.session(session) as session:

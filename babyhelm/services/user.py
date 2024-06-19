@@ -9,5 +9,3 @@ class UserService:
 
     async def create(self, email: str, raw_password: str):
         await self.user_repository.create(email, raw_password)
-
-

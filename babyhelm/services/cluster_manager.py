@@ -1,14 +1,10 @@
 from kubernetes import client, config
-
-from babyhelm.schemas.namespace import Metadata
-
+from kubernetes.client.exceptions import ApiException
 from sqlalchemy.exc import SQLAlchemyError
 
-from kubernetes.client.exceptions import ApiException
-
 from babyhelm.exceptions.cluster_manager import ClusterManagerError
-
 from babyhelm.repositories.project import ProjectRepository
+from babyhelm.schemas.namespace import Metadata
 
 
 class ClusterManagerService:
@@ -22,9 +18,11 @@ class ClusterManagerService:
 
     async def create_namespace(self, namespace_data: Metadata):
         namespace = client.V1Namespace(
-            metadata=client.V1ObjectMeta(name=namespace_data.name,
-                                         annotations=namespace_data.annotations,
-                                         labels=namespace_data.labels)
+            metadata=client.V1ObjectMeta(
+                name=namespace_data.name,
+                annotations=namespace_data.annotations,
+                labels=namespace_data.labels,
+            )
         )
         try:
             await self.project_repository.create(namespace_data.name)
@@ -35,4 +33,6 @@ class ClusterManagerService:
                 self.core_v1_api.create_namespace(body=namespace)
             except ApiException:
                 await self.project_repository.delete(namespace_data.name)
-                raise ClusterManagerError("Kubernetes API error, unable to add value to cluster")
+                raise ClusterManagerError(
+                    "Kubernetes API error, unable to add value to cluster"
+                )
