@@ -18,7 +18,7 @@ def get_container() -> ApplicationContainer:
         raise TypeError("Key 'CONFIG' not found in env variables")
     if os.path.exists(os.environ["CONFIG"]) is False:
         raise FileNotFoundError(
-                'Config not found "{0}"'.format(os.environ["CONFIG"]),
+            'Config not found "{0}"'.format(os.environ["CONFIG"]),
         )
     container = ApplicationContainer()
     container.config.from_yaml(os.environ["CONFIG"])
@@ -46,16 +46,16 @@ def server_parser_args() -> typing.Type[ArgsNamespace]:  # noqa: WPS213
     parser.add_argument("--port", dest="port", type=int, default=8000)
     parser.add_argument("--workers", default=1, type=int)
     parser.add_argument(
-            "--reload",
-            default=True,
-            action=argparse.BooleanOptionalAction,
+        "--reload",
+        default=True,
+        action=argparse.BooleanOptionalAction,
     )
     parser.add_argument(
-            "--log-level",
-            dest="log_level",
-            type=str,
-            default="info",
-            choices=["critical", "error", "warning", "info", "debug", "trace"],
+        "--log-level",
+        dest="log_level",
+        type=str,
+        default="info",
+        choices=["critical", "error", "warning", "info", "debug", "trace"],
     )
     return parser.parse_args(namespace=ArgsNamespace)
 
@@ -68,16 +68,16 @@ def create_app(container: ApplicationContainer | None = None):
     debug: bool = container.config.get("debug")
 
     sentry_sdk.init(
-            dsn="https://63a3a9faafa24c6a9a7eedbf61828ec1@o4506655030378496.ingest.us.sentry.io/4507436787433472",
-            traces_sample_rate=1.0,
-            profiles_sample_rate=1.0,
+        dsn="https://63a3a9faafa24c6a9a7eedbf61828ec1@o4506655030378496.ingest.us.sentry.io/4507436787433472",  # noqa E501
+        traces_sample_rate=1.0,
+        profiles_sample_rate=1.0,
     )
 
     app = fastapi.FastAPI(
-            description="BabyHelm",
-            debug=debug,
-            openapi_url="/api/v1/openapi.json" if debug is True else None,
-            docs_url="/docs" if debug is True else None,
+        description="BabyHelm",
+        debug=debug,
+        openapi_url="/api/v1/openapi.json" if debug is True else None,
+        docs_url="/docs" if debug is True else None,
     )
     Instrumentator(excluded_handlers=["/metrics"]).instrument(app).expose(app)
 
@@ -92,19 +92,19 @@ def create_app(container: ApplicationContainer | None = None):
 def main() -> None:
     """."""
     args: typing.Type[ArgsNamespace] = server_parser_args()
-    if os.environ.get("RUNNING_ENV") == 'production':
+    if os.environ.get("RUNNING_ENV") == "production":
         args.config = "/app/config/prod.yaml"
         logging.info("Running in production mode")
 
     os.environ["CONFIG"] = args.config
 
     uvicorn.run(
-            "babyhelm.app:create_app",
-            host=args.host,
-            port=args.port,
-            workers=args.workers,
-            factory=True,
-            reload=args.reload,
+        "babyhelm.app:create_app",
+        host=args.host,
+        port=args.port,
+        workers=args.workers,
+        factory=True,
+        reload=args.reload,
     )
 
 

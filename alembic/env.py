@@ -68,9 +68,7 @@ DATABASE_URL = context.config.get_main_option("sqlalchemy.url")
 engine = create_async_engine(DATABASE_URL, echo=True)
 
 # Create async session maker
-async_session = async_sessionmaker(
-    engine, expire_on_commit=False, class_=AsyncSession
-)
+async_session = async_sessionmaker(engine, expire_on_commit=False, class_=AsyncSession)
 
 
 # Define a method to run migrations

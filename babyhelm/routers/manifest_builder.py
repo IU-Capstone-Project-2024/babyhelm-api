@@ -12,9 +12,9 @@ router = APIRouter(prefix="/manifests", tags=["Manifests"])
 @router.post("/render")
 @inject
 async def render_manifests(
-        application: Application,
-        manifest_builder_service: ManifestBuilderService = Depends(
-                Provide[ApplicationContainer.services.manifest_builder]
-        )
+    application: Application,
+    manifest_builder_service: ManifestBuilderService = Depends(
+        Provide[ApplicationContainer.services.manifest_builder]
+    ),
 ) -> JSONResponse:
     return manifest_builder_service.render_application(application)

@@ -1,8 +1,9 @@
-from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import ForeignKey
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
 from babyhelm.models.base import Base
-from babyhelm.models.user import User
 from babyhelm.models.project import Project
+from babyhelm.models.user import User
 
 
 class UserProjectAssociation(Base):
