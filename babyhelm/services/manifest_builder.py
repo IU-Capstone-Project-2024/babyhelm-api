@@ -8,9 +8,10 @@ from babyhelm.schemas.manifest_builder import Values
 
 
 class ManifestBuilderService:
-
     def __init__(self, templates_directory: Path):
-        self.template_env = jinja2.Environment(loader=jinja2.FileSystemLoader(searchpath=templates_directory))
+        self.template_env = jinja2.Environment(
+            loader=jinja2.FileSystemLoader(searchpath=templates_directory)
+        )
 
     @cached_property
     def deployment_template(self) -> Template:

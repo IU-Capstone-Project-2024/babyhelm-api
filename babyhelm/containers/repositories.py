@@ -1,13 +1,14 @@
 from dependency_injector.containers import DeclarativeContainer
 from dependency_injector.providers import (
     Configuration,
-    DependenciesContainer, Factory,
+    DependenciesContainer,
+    Factory,
+    Provider,
 )
-from dependency_injector.providers import Provider
 
 from babyhelm.containers.gateways import GatewaysContainer
-from babyhelm.repositories.user import UserRepository
 from babyhelm.repositories.project import ProjectRepository
+from babyhelm.repositories.user import UserRepository
 
 
 class RepositoriesContainer(DeclarativeContainer):

@@ -2,7 +2,12 @@
 import contextlib
 import typing
 
-from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, create_async_engine, async_sessionmaker
+from sqlalchemy.ext.asyncio import (
+    AsyncEngine,
+    AsyncSession,
+    async_sessionmaker,
+    create_async_engine,
+)
 
 
 class Database(object):
@@ -12,12 +17,12 @@ class Database(object):
     _factory: async_sessionmaker
 
     def __init__(
-            self,
-            url: str,
-            echo: bool = False,
-            pool_size: int = 5,
-            max_overflow: int = 10,
-            expire_on_commit: bool = False,
+        self,
+        url: str,
+        echo: bool = False,
+        pool_size: int = 5,
+        max_overflow: int = 10,
+        expire_on_commit: bool = False,
     ):
         """."""
         self._engine = create_async_engine(
@@ -33,7 +38,7 @@ class Database(object):
 
     @contextlib.asynccontextmanager
     async def session(
-            self, session: AsyncSession | None = None
+        self, session: AsyncSession | None = None
     ) -> typing.AsyncGenerator[AsyncSession, None]:
         """Session factory."""
         if session:
