@@ -26,7 +26,7 @@ class ManifestBuilderService:
         return self.template_env.get_template("hpa.j2")
 
     @staticmethod
-    def _make_values(application: Application):
+    def _make_values(application: Application) -> Values:
         envs = []
         for env in application.envs:
             envs.append({"name": env.name, "value": env.value})
@@ -37,7 +37,7 @@ class ManifestBuilderService:
                                 postfix="deployment",
                                 replicas=2,
                                 image=application.image,
-                                port=application.ports.targetPort,
+                                port=application.ports.target_port,
                         ),
                         service=Service(
                                 postfix="svc",
@@ -49,7 +49,7 @@ class ManifestBuilderService:
                 )
         )
 
-    def render_application(self, application: Application):
+    def render_application(self, application: Application) -> Manifests:
         values = self._make_values(application)
         deployment = yaml.safe_load(self.deployment_template.render(Values=values))
         service = yaml.safe_load(self.service_template.render(Values=values))

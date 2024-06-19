@@ -6,9 +6,9 @@ metadata:
     app: {{ Values.app.name }}
 spec:
   type: {{ Values.app.service.type }}
-  loadBalancerClass: {{ Values.app.service.loadBalancerClass }}
+  loadBalancerClass: {{ Values.app.service.load_balancer_class }}
   ports:
     - port: {{ Values.app.service.ports.port }}
-      targetPort: {{ Values.app.service.ports.targetPort }}
+      targetPort: {{ Values.app.service.ports.target_port }}
   selector:
     app: {{ Values.app.name }}

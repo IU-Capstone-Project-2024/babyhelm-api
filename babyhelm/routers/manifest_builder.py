@@ -1,11 +1,9 @@
-import yaml
 from dependency_injector.wiring import Provide, inject
 from fastapi import APIRouter, Depends
-from starlette import status
 from starlette.responses import JSONResponse
 
 from babyhelm.containers.application import ApplicationContainer
-from babyhelm.schemas.manifest_builder import Application, Values
+from babyhelm.schemas.manifest_builder import Application
 from babyhelm.services.manifest_builder import ManifestBuilderService
 
 router = APIRouter(prefix="/manifests", tags=["Manifests"])

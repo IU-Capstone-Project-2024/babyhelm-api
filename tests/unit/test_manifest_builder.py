@@ -14,7 +14,7 @@ def builder() -> ManifestBuilderService:
 
 
 @pytest.fixture()
-def application_values_as_dict():
+def application_values_as_dict() -> dict:
     return {
         "name": "some-app",
         "image": "some-image:latest",
@@ -37,7 +37,7 @@ def application_values(application_values_as_dict) -> Application:
 
 
 @pytest.fixture()
-def render_results():
+def render_results() -> dict:
     return {
         "deployment": {
             "apiVersion": "apps/v1",
@@ -147,7 +147,7 @@ def render_results():
 
 
 @pytest.fixture()
-def invalid_application_values_as_dict(application_values_as_dict):
+def invalid_application_values_as_dict(application_values_as_dict) -> dict:
     invalid_name = deepcopy(application_values_as_dict)
     invalid_name["name"] = "some-app{"
     invalid_image = deepcopy(application_values_as_dict)
@@ -168,7 +168,7 @@ class TestManifestBuilder:
                              builder: ManifestBuilderService,
                              application_values: Application,
                              render_results: dict,
-                             manifest_type):
+                             manifest_type: str):
         manifests = builder.render_application(application_values)
         assert getattr(manifests, manifest_type) == render_results.get(manifest_type)
 
@@ -192,7 +192,7 @@ class TestManifestBuilder:
                                            application_values_as_dict: dict,
                                            render_results: dict,
                                            invalid_application_values_as_dict: dict,
-                                           invalid_input_type):
+                                           invalid_input_type: str):
         response = fastapi_test_client.post(
                 "/manifests/render",
                 json=invalid_application_values_as_dict[invalid_input_type]

@@ -1,9 +1,9 @@
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, Field, field_validator
 
 
 class Ports(BaseModel):
     port: int
-    targetPort: int
+    target_port: int = Field(alias="targetPort")
 
 
 class Deployment(BaseModel):
@@ -16,7 +16,7 @@ class Deployment(BaseModel):
 class Service(BaseModel):
     postfix: str
     type: str
-    loadBalancerClass: str
+    load_balancer_class: str = Field(alias="loadBalancerClass")
     ports: Ports
 
 
