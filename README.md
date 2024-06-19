@@ -1,5 +1,11 @@
 # Babyhelm
 
+## Install pre commit hooks
+```shell
+poetry add pre-commit
+pre-commit install
+```
+
 ## Run dev fastapi server
 ```shell
 mkdir ./local
