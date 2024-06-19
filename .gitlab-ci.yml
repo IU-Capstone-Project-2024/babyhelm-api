@@ -2,6 +2,7 @@
   image: "python:3.11"
 
 stages:
+  - lint
   - test
   - build
   - deploy
@@ -16,6 +17,15 @@ default:
     - virtualenv .venv
     - source .venv/bin/activate
 
+lint:
+  stage: lint
+  extends: ".stage"
+  before_script:
+    - !reference [ default, before_script ]
+  script:
+    - pip install tox
+    - tox -e lint
+
 test:
   stage: test
   extends: ".stage"
@@ -23,7 +33,7 @@ test:
     - !reference [ default, before_script ]
   script:
     - pip install tox
-    - tox
+    - tox -e test
 
 build-dev:
   stage: build
