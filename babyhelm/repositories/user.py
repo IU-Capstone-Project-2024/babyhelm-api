@@ -35,13 +35,3 @@ class UserRepository:
             statement = sa.select(User).where(*args)
             execute_result = await session_.execute(statement)
             return execute_result.scalar_one_or_none()
-    
-    async def authenticate(self, username: str, password: str) -> TokenSchema:
-        user = await self.get(User.username == username)
-        if not user or not verify_password(password, user.hashed_password):
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid username or password")
-
-        access_token = create_access_token(data={"sub": user.username}, expires_delta=timedelta(minutes=30))
-        refresh_token = create_refresh_token(data={"sub": user.username}, expires_delta=timedelta(days=30))
-
-        return TokenSchema(access_token=access_token, refresh_token=refresh_token, token_type="Bearer")

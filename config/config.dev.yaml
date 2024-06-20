@@ -6,3 +6,6 @@ database:
   expire_on_commit: False
 templates:
   path: "babyhelm/templates"
+auth:
+  access_token_expire_minutes: 30
+  refresh_token_expire_days: 30
