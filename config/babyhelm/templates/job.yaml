@@ -1,0 +1,32 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ .Values.app.name }}-migrations
+spec:
+  ttlSecondsAfterFinished: 120
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.app.name }}
+    spec:
+      containers:
+        - name: migrations
+          image: {{ .Values.app.deployment.image }}
+          command: ["alembic", "upgrade", "head"]
+          env:
+            - name: CONFIG
+              value: "{{ .Values.app.config.path }}/{{ .Values.app.config.file }}"
+          volumeMounts:
+            - name: config-volume
+              mountPath: {{ .Values.app.config.path }}
+      volumes:
+        - name: config-volume
+          configMap:
+            name: {{ .Values.app.name }}-configmap
+            items:
+              - key: {{ .Values.app.config.file }}
+                path: {{ .Values.app.config.file }}
+      restartPolicy: OnFailure
+      imagePullSecrets:
+        - name: gitlab
+  backoffLimit: 3

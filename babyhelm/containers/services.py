@@ -2,11 +2,14 @@
 from dependency_injector.containers import DeclarativeContainer
 from dependency_injector.providers import (
     Configuration,
-    DependenciesContainer, Factory, Provider,
+    DependenciesContainer,
+    Factory,
+    Provider,
 )
 
 from babyhelm.containers.gateways import GatewaysContainer
 from babyhelm.containers.repositories import RepositoriesContainer
+from babyhelm.services.cluster_manager import ClusterManagerService
 from babyhelm.services.manifest_builder import ManifestBuilderService
 from babyhelm.services.user import UserService
 
@@ -17,11 +20,18 @@ class ServicesContainer(DeclarativeContainer):
     config: Configuration = Configuration()
     gateways: GatewaysContainer = DependenciesContainer()
     repositories: RepositoriesContainer = DependenciesContainer()
-    manifest_builder: Provider[ManifestBuilderService] = Factory[ManifestBuilderService](
+    manifest_builder: Provider[ManifestBuilderService] = Factory[
+        ManifestBuilderService
+    ](
         ManifestBuilderService,
         templates_directory=config.templates.path,
     )
     user: Provider[UserService] = Factory[UserService](
         UserService,
         user_repository=repositories.user,
+    )
+    cluster_manager: Provider[ClusterManagerService] = Factory[ClusterManagerService](
+        ClusterManagerService,
+        project_repository=repositories.project,
+        kubeconfig_path=config.kubeconfig.path,
     )

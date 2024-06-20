@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.app.name }}-configmap
+  labels:
+    app: {{ .Values.app.name }}
+data:
+  {{ .Values.app.config.file }}: |-
+      debug: True
+      database:
+        url: {{ .Values.env.database_url }}
+        echo: True
+        expire_on_commit: False
+      templates:
+        path: "babyhelm/templates"
+      cubeconfig:
+        path: "local/kubeconfig.yaml"

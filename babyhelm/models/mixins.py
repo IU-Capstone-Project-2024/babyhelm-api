@@ -1,6 +1,7 @@
-from sqlalchemy.orm import Mapped, mapped_column
 import datetime
+
 import sqlalchemy as sa
+from sqlalchemy.orm import Mapped, mapped_column
 
 
 class TimeStampMixin:

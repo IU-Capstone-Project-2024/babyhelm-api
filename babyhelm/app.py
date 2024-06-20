@@ -1,13 +1,15 @@
 import argparse
+import logging
 import os
 import typing
 
 import fastapi
+import sentry_sdk
 import uvicorn
+from prometheus_fastapi_instrumentator import Instrumentator
 
 from babyhelm.containers.application import ApplicationContainer
-from babyhelm.routers.manifest_builder import router as manifest_builder_router
-from babyhelm.routers.user import router as user_router
+from babyhelm.routers import routers_list
 
 
 def get_container() -> ApplicationContainer:
@@ -65,15 +67,22 @@ def create_app(container: ApplicationContainer | None = None):
 
     debug: bool = container.config.get("debug")
 
+    sentry_sdk.init(
+        dsn="https://63a3a9faafa24c6a9a7eedbf61828ec1@o4506655030378496.ingest.us.sentry.io/4507436787433472",  # noqa E501
+        traces_sample_rate=1.0,
+        profiles_sample_rate=1.0,
+    )
+
     app = fastapi.FastAPI(
         description="BabyHelm",
         debug=debug,
         openapi_url="/api/v1/openapi.json" if debug is True else None,
         docs_url="/docs" if debug is True else None,
     )
+    Instrumentator(excluded_handlers=["/metrics"]).instrument(app).expose(app)
 
-    app.include_router(manifest_builder_router)
-    app.include_router(user_router)
+    for router in routers_list:
+        app.include_router(router)
 
     app.state.container = container
 
@@ -83,6 +92,9 @@ def create_app(container: ApplicationContainer | None = None):
 def main() -> None:
     """."""
     args: typing.Type[ArgsNamespace] = server_parser_args()
+    if os.environ.get("RUNNING_ENV") == "production":
+        args.config = "/app/config/prod.yaml"
+        logging.info("Running in production mode")
 
     os.environ["CONFIG"] = args.config
 

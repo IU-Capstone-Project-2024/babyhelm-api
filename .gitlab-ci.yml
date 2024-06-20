@@ -6,9 +6,12 @@ stages:
 variables:
   IMAGE_NAME: "registry.gitlab.com/babyhelm/babyhelm"
 
+
 build-dev:
   stage: build
   image: docker:dind
+  rules:
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
   services:
     - docker:dind
   script:
@@ -17,16 +20,47 @@ build-dev:
     - docker build -t $IMAGE_NAME:$CI_COMMIT_SHORT_SHA-dev .
     - docker push $IMAGE_NAME:$CI_COMMIT_SHORT_SHA-dev
 
-unit-tests:
+test-dev:
   stage: test
-  image: $IMAGE_NAME:$CI_COMMIT_SHORT_SHA-dev
-  before_script:
-    - poetry install --only dev
-    - poetry install
+  image:
+    name: $IMAGE_NAME:$CI_COMMIT_SHORT_SHA-dev
+    entrypoint: [ "" ]
+  rules:
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
   script:
-    - poetry run pytest tests/unit
+    - pip install tox
+    - tox
 
-deploy-dev:
-  stage: deploy
+release:
+  stage: build
+  image: docker:dind
+  rules:
+    - if: $CI_COMMIT_BRANCH == 'main'
+  services:
+    - docker:dind
   script:
-    - echo "Deploying to dev..." # TODO
+    - docker info
+    - docker login $CI_REGISTRY -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD
+    - docker build -t $IMAGE_NAME:latest .
+    - docker push $IMAGE_NAME:latest
+
+test-release:
+    stage: test
+    image:
+        name: $IMAGE_NAME:latest
+        entrypoint: [ "" ]
+    rules:
+        - if: $CI_COMMIT_BRANCH == 'main'
+    script:
+        - pip install tox
+        - tox
+
+deploy:
+  stage: deploy
+  image:
+    name: alpine/helm
+    entrypoint: [ "" ]
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+  script:
+    - helm upgrade --install babyhelm config/babyhelm --namespace=babyhelm --kubeconfig $DEV_CLUSTER_KUBECONFIG --set env.database_url=$DATABASE_URL

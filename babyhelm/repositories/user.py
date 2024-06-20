@@ -6,7 +6,6 @@ import sqlalchemy as sa
 
 from babyhelm.exceptions.http import BadRequestError
 from babyhelm.gateways.database import Database
-
 from babyhelm.models import User
 from babyhelm.schemas.user import TokenSchema
 from babyhelm.services.auth import create_access_token, create_refresh_token, verify_password
@@ -20,7 +19,9 @@ class UserRepository:
     def __init__(self, db: Database):
         self.db = db
 
-    async def create(self, email: str, hashed_password: str, session: AsyncSession | None = None):
+    async def create(
+        self, email: str, hashed_password: str, session: AsyncSession | None = None
+    ):
         user = User(email=email, password=hashed_password)
         try:
             async with self.db.session(session) as session_:

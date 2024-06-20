@@ -1,11 +1,13 @@
 from dependency_injector.containers import DeclarativeContainer
 from dependency_injector.providers import (
     Configuration,
-    DependenciesContainer, Factory,
+    DependenciesContainer,
+    Factory,
+    Provider,
 )
-from dependency_injector.providers import Provider
 
 from babyhelm.containers.gateways import GatewaysContainer
+from babyhelm.repositories.project import ProjectRepository
 from babyhelm.repositories.user import UserRepository
 
 
@@ -17,4 +19,7 @@ class RepositoriesContainer(DeclarativeContainer):
 
     user: Provider[UserRepository] = Factory[UserRepository](
         UserRepository, db=gateways.db
+    )
+    project: Provider[ProjectRepository] = Factory[ProjectRepository](
+        ProjectRepository, db=gateways.db
     )

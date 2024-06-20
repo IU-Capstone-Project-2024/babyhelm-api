@@ -1,19 +1,22 @@
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ Values.app.name }}
+  name: {{ Values.app.name }}-{{ Values.app.deployment.postfix }}
 spec:
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
   selector:
     matchLabels:
       app: {{ Values.app.name }}
+  replicas: {{ Values.app.deployment.replicas }}
   template:
-    metadata:
-      labels:
-        app: {{ Values.app.name }}
     spec:
       containers:
-        - name: {{ Values.app.name }}
-          image: {{ Values.app.image }}
+        - name: {{ Values.app.name }}-container
+          image: {{ Values.app.deployment.image }}
           ports:
-            - containerPort: {{ Values.app.port }}
+            - containerPort: {{ Values.app.deployment.port }}
+          env: {{ Values.app.envs }}

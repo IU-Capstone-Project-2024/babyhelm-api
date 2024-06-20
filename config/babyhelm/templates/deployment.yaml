@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.app.name }}-{{ .Values.app.deployment.postfix }}
+spec:
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+  selector:
+    matchLabels:
+      app: {{ .Values.app.name }}
+  replicas: {{ .Values.app.deployment.replicas }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.app.name }}
+        date: "{{ now | unixEpoch }}"
+    spec:
+      containers:
+        - name: {{ .Values.app.name }}-fastapi
+          image: {{ .Values.app.deployment.image }}
+          ports:
+            - containerPort: {{ .Values.app.deployment.port }}
+          env:
+            - name: RUNNING_ENV
+              value: {{ .Values.app.deployment.running_env }}
+          volumeMounts:
+            - name: config-volume
+              mountPath: {{ .Values.app.config.path }}
+      volumes:
+        - name: config-volume
+          configMap:
+            name: {{ .Values.app.name }}-configmap
+            items:
+              - key: {{ .Values.app.config.file }}
+                path: {{ .Values.app.config.file }}
+      imagePullSecrets:
+        - name: gitlab
