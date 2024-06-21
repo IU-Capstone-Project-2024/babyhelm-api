@@ -6,7 +6,7 @@ class CreateUser(BaseModel):
     raw_password: str
 
 class UserSchema(BaseModel):
-    username: str
+    email: str
     raw_password: str
 
 class TokenSchema(BaseModel):

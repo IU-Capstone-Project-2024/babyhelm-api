@@ -18,7 +18,7 @@ class RepositoriesContainer(DeclarativeContainer):
     gateways: GatewaysContainer = DependenciesContainer()
 
     user: Provider[UserRepository] = Factory[UserRepository](
-        UserRepository, db=gateways.db
+        UserRepository, db=gateways.db, config=config
     )
     project: Provider[ProjectRepository] = Factory[ProjectRepository](
         ProjectRepository, db=gateways.db

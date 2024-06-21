@@ -12,6 +12,7 @@ from babyhelm.containers.repositories import RepositoriesContainer
 from babyhelm.services.cluster_manager import ClusterManagerService
 from babyhelm.services.manifest_builder import ManifestBuilderService
 from babyhelm.services.user import UserService
+from babyhelm.services.auth import AuthService
 
 
 class ServicesContainer(DeclarativeContainer):
@@ -26,9 +27,15 @@ class ServicesContainer(DeclarativeContainer):
         ManifestBuilderService,
         templates_directory=config.templates.path,
     )
+    auth: Provider[AuthService] = Factory[AuthService](
+        AuthService,
+        secret_key=config.auth.secret_key,
+        algorithm="HS256"
+    )
     user: Provider[UserService] = Factory[UserService](
         UserService,
         user_repository=repositories.user,
+        auth_service=auth,
     )
     cluster_manager: Provider[ClusterManagerService] = Factory[ClusterManagerService](
         ClusterManagerService,

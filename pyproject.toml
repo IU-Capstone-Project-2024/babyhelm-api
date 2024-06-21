@@ -50,6 +50,7 @@ sentry-sdk = "^2.5.1"
 tox = "^4.15.1"
 
 pre-commit = "^3.7.1"
+pyjwt = "^2.8.0"
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.4.8"
 pytest = "^8.2.2"

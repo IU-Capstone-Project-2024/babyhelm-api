@@ -26,4 +26,4 @@ async def login(
             Provide[ApplicationContainer.services.user],
         ),
 ):
-    return await user_service.authenticate(username=user_data.username, password=user_data.raw_password)
+    return await user_service.authenticate(email=user_data.email, password=user_data.raw_password)
