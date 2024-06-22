@@ -10,6 +10,7 @@ from prometheus_fastapi_instrumentator import Instrumentator
 
 from babyhelm.containers.application import ApplicationContainer
 from babyhelm.routers import routers_list
+from babyhelm.exception_handlers import exception_handlers_list
 
 
 def get_container() -> ApplicationContainer:
@@ -68,7 +69,8 @@ def create_app(container: ApplicationContainer | None = None):
     debug: bool = container.config.get("debug")
 
     sentry_sdk.init(
-        dsn="https://63a3a9faafa24c6a9a7eedbf61828ec1@o4506655030378496.ingest.us.sentry.io/4507436787433472",  # noqa E501
+        dsn="https://63a3a9faafa24c6a9a7eedbf61828ec1@o4506655030378496.ingest.us.sentry.io/4507436787433472",
+        # noqa E501
         traces_sample_rate=1.0,
         profiles_sample_rate=1.0,
     )
@@ -83,6 +85,9 @@ def create_app(container: ApplicationContainer | None = None):
 
     for router in routers_list:
         app.include_router(router)
+
+    for handler_info in exception_handlers_list:
+        app.add_exception_handler(**handler_info)
 
     app.state.container = container
 
