@@ -14,6 +14,6 @@ class Application(Base, TimeStampMixin, IdMixin):
     project_id: Mapped[int] = mapped_column(
         ForeignKey("projects.id"), nullable=False, unique=True
     )
-    # TODO add app-related configuration info
+    image: Mapped[str] = mapped_column(nullable=False, unique=False)
 
     project: Mapped["Project"] = relationship(back_populates="applications")

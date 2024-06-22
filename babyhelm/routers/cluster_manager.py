@@ -6,6 +6,7 @@ from starlette.responses import JSONResponse
 
 from babyhelm.containers.application import ApplicationContainer
 from babyhelm.exceptions.cluster_manager import ClusterManagerError
+from babyhelm.schemas.manifest_builder import Application
 from babyhelm.schemas.namespace import Values
 from babyhelm.services.cluster_manager import ClusterManagerService
 
@@ -30,5 +31,27 @@ async def create_namespace(
         )
     return JSONResponse(
         content={"message": f"Project '{values.project.name}' is created"},
+        status_code=status.HTTP_200_OK,
+    )
+
+
+@router.post("/create-application")
+@inject
+async def create_application(
+    application: Application,
+    cluster_manager_service: ClusterManagerService = Depends(
+        Provide[ApplicationContainer.services.cluster_manager]
+    ),
+) -> JSONResponse:
+    try:
+        await cluster_manager_service.create_application(app=application)
+    except ClusterManagerError as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error while creating application '{application.name}': "
+            f"{e.message}",
+        )
+    return JSONResponse(
+        content={"message": f"Application '{application.name}' is created"},
         status_code=status.HTTP_200_OK,
     )
