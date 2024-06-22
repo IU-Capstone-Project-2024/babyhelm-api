@@ -1,12 +1,17 @@
+import logging
+
+import yaml
 from kubernetes import client, config, utils
-from kubernetes.client.exceptions import ApiException
 from sqlalchemy.exc import SQLAlchemyError
 
-from babyhelm.exceptions.cluster_manager import ClusterManagerError
+from babyhelm.exceptions.cluster_manager import ClusterError, DatabaseError
+
 from babyhelm.repositories.application import ApplicationRepository
 from babyhelm.repositories.project import ProjectRepository
-from babyhelm.schemas.manifest_builder import Application
-from babyhelm.schemas.namespace import Metadata
+
+from babyhelm.schemas.manifest_builder import Project
+from babyhelm.schemas.cluster_manager import ApplicationRequest
+
 from babyhelm.services.manifest_builder import ManifestBuilderService
 
 
@@ -19,47 +24,56 @@ class ClusterManagerService:
         kubeconfig_path,
     ):
         self.project_repository = project_repository
-        self.manifest_builder = manifest_builder
         self.application_repository = application_repository
-
-        config.load_kube_config(config_file=kubeconfig_path)
-
-        configuration = client.configuration.Configuration()
-        self.k8s_client = client.api_client.ApiClient(configuration)
-
-    async def create_namespace(self, namespace_data: Metadata):
-        namespace = client.V1Namespace(
-            metadata=client.V1ObjectMeta(
-                name=namespace_data.name,
-                annotations=namespace_data.annotations,
-                labels=namespace_data.labels,
-            )
+        self.manifest_builder = manifest_builder
+        #
+        # config.load_kube_config(config_file=kubeconfig_path)
+        #
+        # configuration = client.configuration.Configuration()
+        self.k8s_client = config.new_client_from_config_dict(
+            yaml.safe_load(open("local/kubeconfig.yaml", "r"))
         )
-        try:
-            await self.project_repository.create(namespace_data.name)
-            # self.core_v1_api.create_namespace(body=namespace) # TODO make addition via generated manifest
-        except SQLAlchemyError:
-            raise ClusterManagerError("SQLAlchemy API error, unable to add value to DB")
-        except ApiException:
-            await self.project_repository.delete(namespace_data.name)
-            raise ClusterManagerError(
-                "Kubernetes API error, unable to add value to cluster"
-            )
 
-    async def create_application(self, app: Application):
-        manifests = self.manifest_builder.render_application(application=app)
-        namespace = app.namespace
+    async def create_project(self, project: Project):
+        """
+        Project - term for user
+        Namespace - inner term from k8s
+        """
+        manifest = self.manifest_builder.render_namespace(project=project)
+        try:
+            await self.project_repository.create(name=project.name)
+            utils.create_from_dict(self.k8s_client, data=manifest.namespace)
+        except SQLAlchemyError as e:
+            raise DatabaseError(project.name) from e
+        except utils.FailToCreateError as e:
+            await self.project_repository.delete(name=project.name)
+            raise ClusterError(project.name) from e
+
+    async def create_application(self, app: ApplicationRequest):
+        application = app.application
+        manifests = self.manifest_builder.render_application(application=application)
+        project_name = app.project.name
         try:
             await self.application_repository.create(
-                name=app.name, namespace=namespace, image=app.image
+                name=application.name,
+                project_name=project_name,
+                image=application.image,
             )
-            utils.create_from_yaml(
-                self.k8s_client, yaml_objects=manifests, namespace=namespace
+            utils.create_from_dict(
+                self.k8s_client, manifests.deployment, namespace=project_name
             )
-        except SQLAlchemyError:
-            raise ClusterManagerError("SQLAlchemy API error, unable to add value to DB")
-        except utils.FailToCreateError:
-            await self.application_repository.delete(name=app.name, namespace=namespace)
-            raise ClusterManagerError(
-                "Kubernetes API error, unable to add value to cluster"
+            utils.create_from_dict(
+                self.k8s_client, manifests.service, namespace=project_name
             )
+            utils.create_from_dict(
+                self.k8s_client, manifests.hpa, namespace=project_name
+            )
+        except SQLAlchemyError as e:
+            logging.error(e)
+            raise DatabaseError(application.name) from e
+        except utils.FailToCreateError as e:
+            logging.error(e)
+            await self.application_repository.delete(
+                name=application.name, project_name=project_name
+            )
+            raise ClusterError(app.application.name) from e
