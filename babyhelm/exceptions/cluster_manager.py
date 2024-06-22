@@ -1,8 +1,13 @@
-class ClusterManagerError(Exception):
-    """
-    Custom exception class for Cluster Manager Service errors.
-    """
+from babyhelm.exceptions.base import ClusterManagerError
 
-    def __init__(self, message):
-        self.message = message
-        super().__init__(self.message)
+
+class DatabaseError(ClusterManagerError):
+    def __init__(self, entity_name):
+        super().__init__(f"Error creating {entity_name}: unable to add value to DB")
+
+
+class ClusterError(ClusterManagerError):
+    def __init__(self, entity_name):
+        super().__init__(
+            f"Error creating {entity_name}: unable to add value to cluster"
+        )
