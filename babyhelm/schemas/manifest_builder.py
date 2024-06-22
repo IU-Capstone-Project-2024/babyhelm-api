@@ -1,5 +1,7 @@
 from pydantic import BaseModel, Field, field_validator
 
+import re
+
 
 class Ports(BaseModel):
     port: int
@@ -36,10 +38,27 @@ class Values(BaseModel):
     app: App
 
 
-class Manifests(BaseModel):
+class ApplicationManifests(BaseModel):
     deployment: dict
     service: dict
     hpa: dict
+
+
+class NamespaceManifest(BaseModel):
+    namespace: dict
+
+
+class Project(BaseModel):
+    name: str = Field(..., max_length=253)
+
+    @field_validator("name")
+    @classmethod
+    def validate_name(cls, v):
+        if not re.match(r"^[a-zA-Z0-9-]+$", v):
+            raise ValueError(
+                "Name must contain only alphanumeric characters and hyphens."
+            )
+        return v
 
 
 class Application(BaseModel):
@@ -51,7 +70,6 @@ class Application(BaseModel):
     image: str
     ports: Ports
     envs: list[Env]
-    namespace: str
 
     @field_validator("name")
     @classmethod
