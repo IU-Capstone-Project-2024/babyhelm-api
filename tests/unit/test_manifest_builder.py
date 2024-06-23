@@ -43,6 +43,11 @@ def render_results() -> dict:
                 "selector": {"matchLabels": {"app": "some-app"}},
                 "replicas": 2,
                 "template": {
+                    "metadata": {
+                        "labels": {
+                            "app": "some-app"
+                        }
+                    },
                     "spec": {
                         "containers": [
                             {
