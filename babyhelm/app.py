@@ -7,6 +7,7 @@ import fastapi
 import sentry_sdk
 import uvicorn
 from prometheus_fastapi_instrumentator import Instrumentator
+from fastapi.middleware.cors import CORSMiddleware
 
 from babyhelm.containers.application import ApplicationContainer
 from babyhelm.exception_handlers import exception_handlers_list
@@ -80,6 +81,13 @@ def create_app(container: ApplicationContainer | None = None):
         debug=debug,
         openapi_url="/api/v1/openapi.json" if debug is True else None,
         docs_url="/docs" if debug is True else None,
+    )
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
     )
     Instrumentator(excluded_handlers=["/metrics"]).instrument(app).expose(app)
 
