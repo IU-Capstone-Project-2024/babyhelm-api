@@ -1,6 +1,6 @@
-from pydantic import BaseModel, Field, field_validator
-
 import re
+
+from pydantic import BaseModel, Field, field_validator
 
 
 class Ports(BaseModel):
@@ -74,85 +74,30 @@ class Application(BaseModel):
     @field_validator("name")
     @classmethod
     def validate_name(cls, v):
-        forbidden_symbols = [
-            "{",
-            "}",
-            "[",
-            "]",
-            ":",
-            ",",
-            "*",
-            "&",
-            "^",
-            "%",
-            "$",
-            "#",
-            "@",
-            "!",
-            "~",
-            "`",
-            '"',
-            "'",
-        ]
-        for symbol in forbidden_symbols:
-            if symbol in v:
-                raise ValueError(
-                    f"Name should not contain forbidden symbols: {forbidden_symbols}"
-                )
+        forbidden_symbols = "{}[]:,*&^%$#@!~`\"'"
+        if any(symb in v for symb in forbidden_symbols):
+            raise ValueError(
+                f"Name should not contain forbidden symbols: {forbidden_symbols}"
+            )
         return v
 
     @field_validator("image")
     @classmethod
     def validate_image(cls, v):
-        forbidden_symbols = [
-            "{",
-            "}",
-            "[",
-            "]",
-            "*",
-            "&",
-            "^",
-            "%",
-            "$",
-            "#",
-            "@",
-            "!",
-            "~",
-            "`",
-            "'",
-        ]
-        for symbol in forbidden_symbols:
-            if symbol in v:
-                raise ValueError(
-                    f"Image should not contain forbidden symbols: {forbidden_symbols}"
-                )
+        forbidden_symbols = "{}[]*&^%$#@!~`'"
+        if any(symb in v for symb in forbidden_symbols):
+            raise ValueError(
+                f"Image should not contain forbidden symbols: {forbidden_symbols}"
+            )
         return v
 
     @field_validator("envs")
     @classmethod
     def validate_envs(cls, v):
-        forbidden_symbols = [
-            "{",
-            "}",
-            "[",
-            "]",
-            "*",
-            "&",
-            "^",
-            "%",
-            "$",
-            "#",
-            "@",
-            "!",
-            "~",
-            "`",
-            "'",
-            ":",
-        ]
+        forbidden_symbols = "{}[]:*&^%$#@!~`'"
         for env in v:
-            for symbol in forbidden_symbols:
-                if symbol in env.name or symbol in env.value:
-                    raise ValueError(
-                        f"Env name/value should not contain forbidden symbols: {forbidden_symbols}"
-                    )
+            if any(symb in env.name or symb in env.value for symb in forbidden_symbols):
+                raise ValueError(
+                    f"Env name/value should not contain forbidden symbols: {forbidden_symbols}"
+                )
         return v
