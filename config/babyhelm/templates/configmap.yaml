@@ -13,5 +13,8 @@ data:
         expire_on_commit: False
       templates:
         path: "babyhelm/templates"
-      cubeconfig:
+      auth:
+        access_token_expire_minutes: 30
+        refresh_token_expire_days: 30
+      kubeconfig:
         path: "local/kubeconfig.yaml"
