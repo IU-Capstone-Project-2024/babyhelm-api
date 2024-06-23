@@ -6,7 +6,8 @@ from starlette.responses import JSONResponse
 
 from babyhelm.containers.application import ApplicationContainer
 from babyhelm.exceptions.cluster_manager import ClusterManagerError
-from babyhelm.schemas.namespace import Values
+from babyhelm.schemas.manifest_builder import Project
+from babyhelm.schemas.cluster_manager import ApplicationRequest
 from babyhelm.services.cluster_manager import ClusterManagerService
 
 router = APIRouter(prefix="/clusters", tags=["Clusters"])
@@ -14,21 +15,29 @@ router = APIRouter(prefix="/clusters", tags=["Clusters"])
 
 @router.post("/create-project")
 @inject
-async def create_namespace(
-    values: Values,
+async def create_project(
+    project: Project,
     cluster_manager_service: ClusterManagerService = Depends(
         Provide[ApplicationContainer.services.cluster_manager]
     ),
 ) -> JSONResponse:
-    try:
-        await cluster_manager_service.create_namespace(values.project)
-    except ClusterManagerError as e:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Error while creating project '{values.project.name}': "
-            f"{e.message}",
-        )
+    await cluster_manager_service.create_project(project)
     return JSONResponse(
-        content={"message": f"Project '{values.project.name}' is created"},
+        content={"message": f"Project '{project.name}' is created"},
+        status_code=status.HTTP_200_OK,
+    )
+
+
+@router.post("/create-application")
+@inject
+async def create_application(
+    app: ApplicationRequest,
+    cluster_manager_service: ClusterManagerService = Depends(
+        Provide[ApplicationContainer.services.cluster_manager]
+    ),
+) -> JSONResponse:
+    await cluster_manager_service.create_application(app=app)
+    return JSONResponse(
+        content={"message": f"Application '{app.application.name}' is created"},
         status_code=status.HTTP_200_OK,
     )

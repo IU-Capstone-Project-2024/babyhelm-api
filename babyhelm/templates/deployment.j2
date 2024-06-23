@@ -13,6 +13,9 @@ spec:
       app: {{ Values.app.name }}
   replicas: {{ Values.app.deployment.replicas }}
   template:
+    metadata:
+        labels:
+            app: {{ Values.app.name }}
     spec:
       containers:
         - name: {{ Values.app.name }}-container

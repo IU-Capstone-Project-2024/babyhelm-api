@@ -6,5 +6,5 @@ database:
   expire_on_commit: False
 templates:
   path: "babyhelm/templates"
-cubeconfig:
+kubeconfig:
   path: "local/kubeconfig.yaml"

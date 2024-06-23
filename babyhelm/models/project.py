@@ -9,11 +9,11 @@ if TYPE_CHECKING:
     from babyhelm.models import Application, UserProjectAssociation
 
 
-class Project(Base, TimeStampMixin, IdMixin):
+class Project(Base, TimeStampMixin):
     """Project model."""
 
     __tablename__ = "projects"
-    name: Mapped[str] = mapped_column(nullable=False, unique=True)
+    name: Mapped[str] = mapped_column(primary_key=True)
 
     # many-to-many
     users: Mapped[list["UserProjectAssociation"]] = relationship(

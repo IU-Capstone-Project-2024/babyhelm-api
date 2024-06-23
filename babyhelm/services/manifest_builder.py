@@ -9,9 +9,11 @@ from babyhelm.schemas.manifest_builder import (
     App,
     Application,
     Deployment,
-    Manifests,
+    ApplicationManifests,
+    NamespaceManifest,
     Service,
     Values,
+    Project,
 )
 
 
@@ -32,6 +34,10 @@ class ManifestBuilderService:
     @cached_property
     def hpa_template(self) -> Template:
         return self.template_env.get_template("hpa.j2")
+
+    @cached_property
+    def namespace_template(self) -> Template:
+        return self.template_env.get_template("namespace.j2")
 
     @staticmethod
     def _make_values(application: Application) -> Values:
@@ -57,9 +63,13 @@ class ManifestBuilderService:
             )
         )
 
-    def render_application(self, application: Application) -> Manifests:
+    def render_application(self, application: Application) -> ApplicationManifests:
         values = self._make_values(application)
         deployment = yaml.safe_load(self.deployment_template.render(Values=values))
         service = yaml.safe_load(self.service_template.render(Values=values))
         hpa = yaml.safe_load(self.hpa_template.render(Values=values))
-        return Manifests(deployment=deployment, service=service, hpa=hpa)
+        return ApplicationManifests(deployment=deployment, service=service, hpa=hpa)
+
+    def render_namespace(self, project: Project) -> NamespaceManifest:
+        namespace = yaml.safe_load(self.namespace_template.render(Project=project))
+        return NamespaceManifest(namespace=namespace)
