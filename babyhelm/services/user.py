@@ -1,4 +1,3 @@
-from babyhelm.exceptions.auth import UserNotFoundError
 from babyhelm.models import User
 from babyhelm.repositories.user import UserRepository
 from babyhelm.schemas.user import ViewUserScheme

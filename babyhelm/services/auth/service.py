@@ -4,9 +4,9 @@ import bcrypt
 import jwt
 
 from babyhelm.exceptions.auth import (
+    InvalidCredentialsError,
     InvalidTokenError,
     TokenExpiredError,
-    InvalidCredentialsError,
 )
 from babyhelm.models import User
 from babyhelm.repositories.user import UserRepository
@@ -15,12 +15,12 @@ from babyhelm.schemas.auth import TokenEnum, TokenSchema
 
 class AuthService:
     def __init__(
-            self,
-            secret_key: str,
-            access_token_expiration: int,
-            refresh_token_expiration: int,
-            user_repository: UserRepository,
-            algorithm: str = "HS256",
+        self,
+        secret_key: str,
+        access_token_expiration: int,
+        refresh_token_expiration: int,
+        user_repository: UserRepository,
+        algorithm: str = "HS256",
     ):
         self.secret_key = secret_key
         self.algorithm = algorithm

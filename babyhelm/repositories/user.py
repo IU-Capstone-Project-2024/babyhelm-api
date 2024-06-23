@@ -16,7 +16,7 @@ class UserRepository:
         self.config = config
 
     async def create(
-            self, email: str, raw_password: str, session: AsyncSession | None = None
+        self, email: str, raw_password: str, session: AsyncSession | None = None
     ) -> None:
         user = User(email=email, password=raw_password)
         try:

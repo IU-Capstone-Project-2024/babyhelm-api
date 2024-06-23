@@ -1,9 +1,6 @@
 import datetime
-from typing import Optional
 
-from pydantic import BaseModel, EmailStr, ConfigDict, Field
-
-from babyhelm.schemas.namespace import Metadata
+from pydantic import BaseModel, ConfigDict, EmailStr
 
 
 class AuthUserScheme(BaseModel):

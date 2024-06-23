@@ -18,10 +18,10 @@ bearer_scheme = HTTPBearer(
 
 @inject
 async def get_current_user_id(
-        bearer: HTTPAuthorizationCredentials | None = fastapi.Depends(bearer_scheme),
-        auth_service: AuthService = fastapi.Depends(
-            Provide[ApplicationContainer.services.auth],
-        ),
+    bearer: HTTPAuthorizationCredentials | None = fastapi.Depends(bearer_scheme),
+    auth_service: AuthService = fastapi.Depends(
+        Provide[ApplicationContainer.services.auth],
+    ),
 ) -> int:
     if not bearer:
         raise NoCredentialsError()
