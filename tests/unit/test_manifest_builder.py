@@ -4,7 +4,7 @@ from pathlib import Path
 import pytest
 from starlette.testclient import TestClient
 
-from babyhelm.schemas.manifest_builder import Application
+from babyhelm.schemas.manifest_builder import Application, Project
 from babyhelm.services.manifest_builder import ManifestBuilderService
 
 
@@ -43,6 +43,7 @@ def render_results() -> dict:
                 "selector": {"matchLabels": {"app": "some-app"}},
                 "replicas": 2,
                 "template": {
+                    "metadata": {"labels": {"app": "some-app"}},
                     "spec": {
                         "containers": [
                             {
@@ -52,7 +53,7 @@ def render_results() -> dict:
                                 "env": [{"name": "SOME_ENV", "value": "SOME_VALUE"}],
                             }
                         ]
-                    }
+                    },
                 },
             },
         },
@@ -118,6 +119,11 @@ def invalid_application_values_as_dict(application_values_as_dict) -> dict:
     }
 
 
+@pytest.fixture()
+def namespace_manifest_as_dict():
+    return {"apiVersion": "v1", "kind": "Namespace", "metadata": {"name": "hello"}}
+
+
 class TestManifestBuilder:
     @pytest.mark.parametrize("manifest_type", ["deployment", "service", "hpa"])
     def test_build_manifests(
@@ -161,3 +167,9 @@ class TestManifestBuilder:
             json=invalid_application_values_as_dict[invalid_input_type],
         )
         assert response.status_code == 422
+
+    def test_render_namespace_manifest(
+        self, builder: ManifestBuilderService, namespace_manifest_as_dict: dict
+    ):
+        namespace_manifest = builder.render_namespace(Project(name="hello"))
+        assert namespace_manifest.namespace == namespace_manifest_as_dict
