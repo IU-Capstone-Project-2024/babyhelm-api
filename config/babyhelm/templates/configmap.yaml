@@ -16,5 +16,6 @@ data:
       auth:
         access_token_expire_minutes: 30
         refresh_token_expire_days: 30
+        secret_key: {{ .Values.env.password_secret_key }}
       kubeconfig:
         path: "local/kubeconfig.yaml"

@@ -22,3 +22,4 @@ app:
 env:
   database_url: fill-me
   kubeconf_b64: fill-me
+  password_secret_key: fill-me
