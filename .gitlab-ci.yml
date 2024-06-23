@@ -63,6 +63,6 @@ deploy:
   rules:
     - if: $CI_COMMIT_BRANCH == "main"
   before_script:
-    - export KUBECONF_ENCODED=$(echo $DEV_CLUSTER_KUBECONFIG | base64)
+    - export KUBECONF_ENCODED=$(cat $DEV_CLUSTER_KUBECONFIG | base64)
   script:
     - helm upgrade --install babyhelm config/babyhelm --namespace=babyhelm --kubeconfig $DEV_CLUSTER_KUBECONFIG --set env.database_url=$DATABASE_URL --set env.kubeconf_b64=$KUBECONF_ENCODED
