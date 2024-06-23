@@ -14,7 +14,5 @@ class GatewaysContainer(DeclarativeContainer):
         Database,
         config.database.url,
         echo=config.database.echo,
-        pool_size=5,
-        max_overflow=15,
         expire_on_commit=config.database.expire_on_commit,
     )

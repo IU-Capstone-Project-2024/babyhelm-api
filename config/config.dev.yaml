@@ -7,8 +7,8 @@ database:
 templates:
   path: "babyhelm/templates"
 auth:
+  secret_key: "chipinkos"
   access_token_expire_minutes: 30
   refresh_token_expire_days: 30
-  secret_key: "Chipinkos"
 kubeconfig:
   path: "local/kubeconfig.yaml"

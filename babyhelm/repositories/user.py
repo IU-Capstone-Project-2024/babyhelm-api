@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from babyhelm.exceptions.http import BadRequestError
 from babyhelm.gateways.database import Database
 from babyhelm.models import User
-from babyhelm.schemas.user import ViewUserScheme
+from babyhelm.schemas.user import ResponseUserScheme
 
 
 class UserRepository:
@@ -16,9 +16,9 @@ class UserRepository:
         self.config = config
 
     async def create(
-        self, email: str, raw_password: str, session: AsyncSession | None = None
+        self, email: str, password: str, session: AsyncSession | None = None
     ) -> None:
-        user = User(email=email, password=raw_password)
+        user = User(email=email, hashed_password=password)
         try:
             async with self.db.session(session) as session_:
                 session_.add(user)
@@ -26,9 +26,11 @@ class UserRepository:
         except IntegrityError:
             raise BadRequestError("User already exists.")
 
-    async def get(self, *args, session: AsyncSession | None = None) -> ViewUserScheme:
+    async def get(
+        self, *args, session: AsyncSession | None = None
+    ) -> ResponseUserScheme:
         async with self.db.session(session) as session_:
             statement = sa.select(User).where(*args)
             user = await session_.scalar(statement)
             if user:
-                return ViewUserScheme.model_validate(user)
+                return ResponseUserScheme.model_validate(user)

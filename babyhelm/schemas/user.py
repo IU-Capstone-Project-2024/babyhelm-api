@@ -8,10 +8,11 @@ class AuthUserScheme(BaseModel):
     raw_password: str
 
 
-class ViewUserScheme(BaseModel):
+class ResponseUserScheme(BaseModel):
     id: int
     email: EmailStr
     created: datetime.datetime
     modified: datetime.datetime
+    hashed_password: str
 
     model_config = ConfigDict(from_attributes=True)
