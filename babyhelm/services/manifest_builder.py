@@ -8,12 +8,12 @@ from jinja2 import Template
 from babyhelm.schemas.manifest_builder import (
     App,
     Application,
-    Deployment,
     ApplicationManifests,
+    Deployment,
     NamespaceManifest,
+    Project,
     Service,
     Values,
-    Project,
 )
 
 

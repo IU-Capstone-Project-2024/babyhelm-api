@@ -1,17 +1,14 @@
 import logging
 
 import yaml
-from kubernetes import client, config, utils
+from kubernetes import config, utils
 from sqlalchemy.exc import SQLAlchemyError
 
 from babyhelm.exceptions.cluster_manager import ClusterError, DatabaseError
-
 from babyhelm.repositories.application import ApplicationRepository
 from babyhelm.repositories.project import ProjectRepository
-
-from babyhelm.schemas.manifest_builder import Project
 from babyhelm.schemas.cluster_manager import ApplicationRequest
-
+from babyhelm.schemas.manifest_builder import Project
 from babyhelm.services.manifest_builder import ManifestBuilderService
 
 

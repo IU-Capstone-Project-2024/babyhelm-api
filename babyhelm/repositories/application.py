@@ -3,9 +3,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from babyhelm.gateways.database import Database
 from babyhelm.models.application import Application
-from babyhelm.models.associations import UserProjectAssociation
-from babyhelm.models.project import Project
-from babyhelm.models.user import User
 
 
 class ApplicationRepository:

@@ -1,8 +1,8 @@
-from fastapi import Request, HTTPException
+from fastapi import Request
 from fastapi.responses import JSONResponse
 from starlette import status
 
-from babyhelm.exceptions import ClusterManagerError
+from babyhelm.exceptions.base import ClusterManagerError
 
 
 async def handler(request: Request, exc: ClusterManagerError):

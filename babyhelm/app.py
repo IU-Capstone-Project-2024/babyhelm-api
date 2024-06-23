@@ -9,8 +9,8 @@ import uvicorn
 from prometheus_fastapi_instrumentator import Instrumentator
 
 from babyhelm.containers.application import ApplicationContainer
-from babyhelm.routers import routers_list
 from babyhelm.exception_handlers import exception_handlers_list
+from babyhelm.routers import routers_list
 
 
 def get_container() -> ApplicationContainer:

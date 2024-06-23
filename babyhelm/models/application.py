@@ -2,7 +2,7 @@ from sqlalchemy import ForeignKey, PrimaryKeyConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from babyhelm.models.base import Base
-from babyhelm.models.mixins import IdMixin, TimeStampMixin
+from babyhelm.models.mixins import TimeStampMixin
 from babyhelm.models.project import Project
 
 

@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from babyhelm.models.base import Base
-from babyhelm.models.mixins import IdMixin, TimeStampMixin
+from babyhelm.models.mixins import TimeStampMixin
 
 if TYPE_CHECKING:
     from babyhelm.models import Application, UserProjectAssociation
