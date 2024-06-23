@@ -23,12 +23,9 @@ class ClusterManagerService:
         self.project_repository = project_repository
         self.application_repository = application_repository
         self.manifest_builder = manifest_builder
-        #
-        # config.load_kube_config(config_file=kubeconfig_path)
-        #
-        # configuration = client.configuration.Configuration()
+
         self.k8s_client = config.new_client_from_config_dict(
-            yaml.safe_load(open("local/kubeconfig.yaml", "r"))
+            yaml.safe_load(open(kubeconfig_path, "r"))
         )
 
     async def create_project(self, project: Project):
