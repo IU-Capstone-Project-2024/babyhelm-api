@@ -29,6 +29,8 @@ spec:
           volumeMounts:
             - name: config-volume
               mountPath: {{ .Values.app.config.path }}
+            - name: secret-volume
+              mountPath: {{ .Values.app.config.kubeconfig }}
       volumes:
         - name: config-volume
           configMap:
@@ -36,5 +38,8 @@ spec:
             items:
               - key: {{ .Values.app.config.file }}
                 path: {{ .Values.app.config.file }}
+        - name: secret-volume
+          secret:
+            secretName: {{ .Values.app.name }}-kubeconfig-secret
       imagePullSecrets:
         - name: gitlab
