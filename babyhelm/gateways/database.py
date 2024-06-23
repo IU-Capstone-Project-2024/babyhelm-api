@@ -21,16 +21,12 @@ class Database(object):
         self,
         url: str,
         echo: bool = False,
-        pool_size: int = 5,
-        max_overflow: int = 10,
         expire_on_commit: bool = False,
     ):
         """."""
         self._engine = create_async_engine(
             url,
             echo=echo,
-            pool_size=pool_size,
-            max_overflow=max_overflow,
         )
         self._factory = async_sessionmaker(
             bind=self._engine,

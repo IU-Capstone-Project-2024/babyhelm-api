@@ -4,7 +4,7 @@ from starlette import status
 
 from babyhelm.containers.application import ApplicationContainer
 from babyhelm.schemas.auth import TokenSchema
-from babyhelm.schemas.user import AuthUserScheme, ViewUserScheme
+from babyhelm.schemas.user import AuthUserScheme, ResponseUserScheme
 from babyhelm.services.auth.dependencies import CURRENT_USER_ID_DEPENDENCY
 from babyhelm.services.auth.service import AuthService
 from babyhelm.services.user import UserService
@@ -45,9 +45,9 @@ async def get_me(
     user_service: UserService = fastapi.Depends(
         Provide[ApplicationContainer.services.user],
     ),
-) -> ViewUserScheme:
+) -> ResponseUserScheme:
     """
     Get current user info if authenticated.
     """
-    user: ViewUserScheme = await user_service.get(user_id)
+    user: ResponseUserScheme = await user_service.get(user_id)
     return user

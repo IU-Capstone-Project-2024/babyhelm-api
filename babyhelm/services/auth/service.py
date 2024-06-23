@@ -11,6 +11,7 @@ from babyhelm.exceptions.auth import (
 from babyhelm.models import User
 from babyhelm.repositories.user import UserRepository
 from babyhelm.schemas.auth import TokenEnum, TokenSchema
+from babyhelm.schemas.user import ResponseUserScheme
 
 
 class AuthService:
@@ -58,8 +59,8 @@ class AuthService:
             raise InvalidTokenError()
 
     async def authenticate_user(self, email: str, password: str) -> TokenSchema:
-        user = await self.user_repository.get(User.email == email)
-        if not user or not self.verify_password(password, user.password):
+        user: ResponseUserScheme = await self.user_repository.get(User.email == email)
+        if not user or not self.verify_password(password, user.hashed_password):
             raise InvalidCredentialsError()
 
         access_token = self.create_token(
