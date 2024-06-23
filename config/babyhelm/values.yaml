@@ -17,6 +17,8 @@ app:
     postfix: configmap
     file: prod.yaml
     path: /app/config
+    kubeconfig: /app/local
 
 env:
   database_url: fill-me
+  kubeconf_b64: fill-me
