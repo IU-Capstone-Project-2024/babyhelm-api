@@ -63,4 +63,4 @@ deploy:
   rules:
     - if: $CI_COMMIT_BRANCH == "main"
   script:
-    - helm upgrade --install babyhelm config/babyhelm --namespace=babyhelm --set env.database_url=$DATABASE_URL --set env.kubeconf_b64=$KUBECONF_ENCODED --set env.password_secret_key=$PASSWORD_SECRET_KEY
+    - helm upgrade --install babyhelm config/babyhelm --namespace=babyhelm --kubeconfig $DEV_CLUSTER_KUBECONFIG --set env.database_url=$DATABASE_URL --set env.kubeconf_b64=$KUBECONF_ENCODED --set env.password_secret_key=$PASSWORD_SECRET_KEY
