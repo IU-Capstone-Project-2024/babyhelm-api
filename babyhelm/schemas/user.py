@@ -1,15 +1,20 @@
-from pydantic import BaseModel, EmailStr
+import datetime
+from typing import Optional
+
+from pydantic import BaseModel, EmailStr, ConfigDict, Field
+
+from babyhelm.schemas.namespace import Metadata
 
 
-class CreateUser(BaseModel):
+class AuthUserScheme(BaseModel):
     email: EmailStr
     raw_password: str
 
-class UserSchema(BaseModel):
-    email: str
-    raw_password: str
 
-class TokenSchema(BaseModel):
-    access_token: str
-    refresh_token: str
-    token_type: str
+class ViewUserScheme(BaseModel):
+    id: int
+    email: EmailStr
+    created: datetime.datetime
+    modified: datetime.datetime
+
+    model_config = ConfigDict(from_attributes=True)

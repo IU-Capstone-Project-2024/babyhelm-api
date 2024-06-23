@@ -18,6 +18,7 @@ class ApplicationContainer(DeclarativeContainer):
             "babyhelm.routers.manifest_builder",
             "babyhelm.routers.user",
             "babyhelm.routers.cluster_manager",
+            "babyhelm.services.auth.dependencies",
         ],
     )
     config: Configuration = Configuration()

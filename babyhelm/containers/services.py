@@ -9,10 +9,10 @@ from dependency_injector.providers import (
 
 from babyhelm.containers.gateways import GatewaysContainer
 from babyhelm.containers.repositories import RepositoriesContainer
+from babyhelm.services.auth.service import AuthService
 from babyhelm.services.cluster_manager import ClusterManagerService
 from babyhelm.services.manifest_builder import ManifestBuilderService
 from babyhelm.services.user import UserService
-from babyhelm.services.auth import AuthService
 
 
 class ServicesContainer(DeclarativeContainer):
@@ -30,7 +30,10 @@ class ServicesContainer(DeclarativeContainer):
     auth: Provider[AuthService] = Factory[AuthService](
         AuthService,
         secret_key=config.auth.secret_key,
-        algorithm="HS256"
+        algorithm="HS256",
+        access_token_expiration=config.auth.access_token_expire_minutes,
+        refresh_token_expiration=config.auth.refresh_token_expire_days,
+        user_repository=repositories.user,
     )
     user: Provider[UserService] = Factory[UserService](
         UserService,
