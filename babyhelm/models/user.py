@@ -9,12 +9,12 @@ if TYPE_CHECKING:
     from babyhelm.models import UserProjectAssociation
 
 
-class User(Base, TimeStampMixin, IdMixin):
+class User(Base, IdMixin, TimeStampMixin):
     """User model."""
 
     __tablename__ = "users"
     email: Mapped[str] = mapped_column(nullable=False, unique=True)
-    password: Mapped[str] = mapped_column(nullable=False)
+    hashed_password: Mapped[str] = mapped_column(nullable=False)
 
     projects: Mapped[list["UserProjectAssociation"]] = relationship(
         back_populates="user"

@@ -16,9 +16,9 @@ class UserRepository:
         self.config = config
 
     async def create(
-        self, email: str, raw_password: str, session: AsyncSession | None = None
+        self, email: str, password: str, session: AsyncSession | None = None
     ) -> None:
-        user = User(email=email, password=raw_password)
+        user = User(email=email, hashed_password=password)
         try:
             async with self.db.session(session) as session_:
                 session_.add(user)

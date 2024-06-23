@@ -9,9 +9,10 @@ class AuthUserScheme(BaseModel):
 
 
 class ResponseUserScheme(BaseModel):
-    user_id: int
+    id: int
     email: EmailStr
     created: datetime.datetime
     modified: datetime.datetime
+    hashed_password: str
 
     model_config = ConfigDict(from_attributes=True)

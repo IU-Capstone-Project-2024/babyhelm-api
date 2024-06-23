@@ -10,3 +10,6 @@ format:
 
 unit-tests:
 	poetry run pytest tests/unit
+
+run:
+	poetry run task babyhelm-dev
