@@ -9,7 +9,7 @@ class AuthUserScheme(BaseModel):
 
 
 class ResponseUserScheme(BaseModel):
-    id: int
+    user_id: int
     email: EmailStr
     created: datetime.datetime
     modified: datetime.datetime
