@@ -3,18 +3,24 @@ from unittest import mock
 
 import pytest
 from fastapi.testclient import TestClient
+from sqlalchemy import create_engine
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from babyhelm.app import create_app
 from babyhelm.containers.application import ApplicationContainer
 from babyhelm.gateways.database import Database
+from babyhelm.models import Base
+
+CONFIG_FILE = "config/config.test.yaml"
+MOCK_DB_URL = "sqlite+aiosqlite:///test.db"
+MOCK_DB_URL_SYNC = "sqlite:///test.db"
 
 
 @pytest.fixture()
-def fastapi_test_client(container: ApplicationContainer) -> TestClient:
-    os.environ["CONFIG"] = "config/config.test.yaml"
+def fastapi_test_client(app_container: ApplicationContainer) -> TestClient:
+    os.environ["CONFIG"] = CONFIG_FILE
     app = create_app()
-    app.state.container = container
+    app.state.container.override(app_container)
     return TestClient(app)
 
 
@@ -29,18 +35,23 @@ def session_mock() -> AsyncSession:
     return session
 
 
-@pytest.fixture(name="db")
-def db_mock(session: AsyncSession) -> Database:
-    """Database mock."""
-    db = mock.AsyncMock(spec=Database)
-    db.session.return_value.__aenter__.return_value = session
-    return db
-
-
-@pytest.fixture(name="container")
-def app_container(db: Database) -> ApplicationContainer:
+@pytest.fixture()
+def app_container(database: Database) -> ApplicationContainer:
     """App container."""
     container = ApplicationContainer()
-    container.config.from_yaml("config/config.test.yaml")
-    container.gateways.db.override(db)
+    container.config.from_yaml(CONFIG_FILE)
+    container.gateways.db.override(database)
     return container
+
+
+@pytest.fixture()
+def _setup_tables():
+    engine = create_engine(url=MOCK_DB_URL_SYNC)
+    Base.metadata.create_all(engine)
+    yield
+    Base.metadata.drop_all(engine)
+
+
+@pytest.fixture()
+def database(_setup_tables):
+    return Database(url=MOCK_DB_URL)
