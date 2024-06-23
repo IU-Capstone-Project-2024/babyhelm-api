@@ -9,5 +9,5 @@ templates:
 auth:
   access_token_expire_minutes: 30
   refresh_token_expire_days: 30
-cubeconfig:
+kubeconfig:
   path: "local/kubeconfig.yaml"

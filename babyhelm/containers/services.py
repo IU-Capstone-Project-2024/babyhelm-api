@@ -1,4 +1,5 @@
 """."""
+
 from dependency_injector.containers import DeclarativeContainer
 from dependency_injector.providers import (
     Configuration,
@@ -43,5 +44,7 @@ class ServicesContainer(DeclarativeContainer):
     cluster_manager: Provider[ClusterManagerService] = Factory[ClusterManagerService](
         ClusterManagerService,
         project_repository=repositories.project,
+        application_repository=repositories.application,
+        manifest_builder=manifest_builder,
         kubeconfig_path=config.kubeconfig.path,
     )

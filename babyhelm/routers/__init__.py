@@ -1,10 +1,7 @@
-import importlib
-import pkgutil
+from babyhelm.routers.cluster_manager import router as cluster_manager_router
+from babyhelm.routers.manifest_builder import router as manifest_builder_router
+from babyhelm.routers.user import router as user_router
 
-routers_list = []
+routers_list = [manifest_builder_router, cluster_manager_router, user_router]
 
-package_name = __name__
-for _, module_name, _ in pkgutil.iter_modules(__path__):
-    module = importlib.import_module(f"{package_name}.{module_name}")
-    if hasattr(module, "router"):
-        routers_list.append(module.router)
+__all__ = ["routers_list"]
