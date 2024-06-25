@@ -11,7 +11,29 @@ from babyhelm.services.cluster_manager import ClusterManagerService
 router = APIRouter(prefix="/clusters", tags=["Clusters"])
 
 
-@router.post("/create-project")
+@router.post(
+    "/create-project",
+    responses={
+        200: {
+            "description": "Successful Response",
+            "content": {
+                "application/json": {
+                    "example": {"message": "Project 'MyProject' is created"}
+                }
+            },
+        },
+        500: {
+            "description": "Server side error",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "message": "Error creating 'MyProject'"
+                    }
+                }
+            },
+        },
+    },
+)
 @inject
 async def create_project(
     project: Project,
@@ -26,7 +48,29 @@ async def create_project(
     )
 
 
-@router.post("/create-application")
+@router.post(
+    "/create-application",
+    responses={
+        200: {
+            "description": "Successful Response",
+            "content": {
+                "application/json": {
+                    "example": {"message": "Application 'MyApplication' is created"}
+                }
+            },
+        },
+        500: {
+            "description": "Server side error",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "message": "Error creating 'MyApplication'"
+                    }
+                }
+            },
+        },
+    },
+)
 @inject
 async def create_application(
     app: ApplicationRequest,

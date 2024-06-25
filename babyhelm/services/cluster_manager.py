@@ -53,6 +53,7 @@ class ClusterManagerService:
                 project_name=project_name,
                 image=application.image,
             )
+            # TODO save workloads to DB
             utils.create_from_dict(
                 self.k8s_client, manifests.deployment, namespace=project_name
             )
