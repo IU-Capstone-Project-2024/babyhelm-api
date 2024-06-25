@@ -51,6 +51,10 @@ class NamespaceManifest(BaseModel):
 class Project(BaseModel):
     name: str = Field(..., max_length=253)
 
+    model_config = {
+        "json_schema_extra": {"examples": [{"name": "my_awesome_project_name"}]}
+    }
+
     @field_validator("name")
     @classmethod
     def validate_name(cls, v):
@@ -70,6 +74,22 @@ class Application(BaseModel):
     image: str
     ports: Ports
     envs: list[Env]
+
+    model_config = {
+        "json_schema_extra": {
+            "examples": [
+                {
+                    "name": "sunflower",
+                    "image": "nginx",
+                    "ports": {
+                        "port": 80,
+                        "target_port": 80,
+                    },
+                    "envs": [{"name": "config_path", "value": "config/path"}],
+                }
+            ]
+        }
+    }
 
     @field_validator("name")
     @classmethod
