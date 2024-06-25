@@ -18,10 +18,20 @@ class ApplicationRepository:
         name: str,
         project_name: str,
         image: str,
+        service_name: str,
+        deployment_name: str,
+        autoscaler_name: str,
         session: AsyncSession | None = None,
     ):
         async with self.db.session(session) as session_:
-            application = Application(name=name, image=image, project_name=project_name)
+            application = Application(
+                name=name,
+                image=image,
+                project_name=project_name,
+                service_name=service_name,
+                deployment_name=deployment_name,
+                autoscaler_name=autoscaler_name,
+            )
 
             session_.add(application)
             await session_.commit()

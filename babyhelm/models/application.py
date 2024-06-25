@@ -15,6 +15,9 @@ class Application(Base, TimeStampMixin):
         ForeignKey("projects.name"), nullable=False
     )
     image: Mapped[str] = mapped_column(nullable=False)
+    service_name: Mapped[str] = mapped_column(nullable=False)
+    deployment_name: Mapped[str] = mapped_column(nullable=False)
+    autoscaler_name: Mapped[str] = mapped_column(nullable=False)
 
     project: Mapped["Project"] = relationship(back_populates="applications")
 
