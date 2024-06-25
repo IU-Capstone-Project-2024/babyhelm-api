@@ -26,9 +26,7 @@ router = APIRouter(prefix="/clusters", tags=["Clusters"])
             "description": "Server side error",
             "content": {
                 "application/json": {
-                    "example": {
-                        "message": "Error creating 'MyProject'"
-                    }
+                    "example": {"message": "Error creating 'MyProject'"}
                 }
             },
         },
@@ -63,9 +61,7 @@ async def create_project(
             "description": "Server side error",
             "content": {
                 "application/json": {
-                    "example": {
-                        "message": "Error creating 'MyApplication'"
-                    }
+                    "example": {"message": "Error creating 'MyApplication'"}
                 }
             },
         },

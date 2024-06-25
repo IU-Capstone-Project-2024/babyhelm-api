@@ -52,8 +52,10 @@ class ClusterManagerService:
                 name=application.name,
                 project_name=project_name,
                 image=application.image,
+                service_name=manifests.service["metadata"]["name"],
+                deployment_name=manifests.deployment["metadata"]["name"],
+                autoscaler_name=manifests.hpa["metadata"]["name"],
             )
-            # TODO save workloads to DB
             utils.create_from_dict(
                 self.k8s_client, manifests.deployment, namespace=project_name
             )
