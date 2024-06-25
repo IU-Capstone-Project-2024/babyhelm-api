@@ -6,8 +6,8 @@ import typing
 import fastapi
 import sentry_sdk
 import uvicorn
-from prometheus_fastapi_instrumentator import Instrumentator
 from fastapi.middleware.cors import CORSMiddleware
+from prometheus_fastapi_instrumentator import Instrumentator
 
 from babyhelm.containers.application import ApplicationContainer
 from babyhelm.exception_handlers import exception_handlers_list
