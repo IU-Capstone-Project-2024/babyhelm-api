@@ -27,7 +27,7 @@ router = APIRouter(prefix="/clusters", tags=["Clusters"])
             "content": {
                 "application/json": {
                     "example": {
-                        "message": "Error creating 'MyProject': unable to add value to DB"
+                        "message": "Error creating 'MyProject'"
                     }
                 }
             },
@@ -64,7 +64,7 @@ async def create_project(
             "content": {
                 "application/json": {
                     "example": {
-                        "message": "Error creating 'MyApplication': unable to add value to DB"
+                        "message": "Error creating 'MyApplication'"
                     }
                 }
             },
