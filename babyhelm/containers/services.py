@@ -47,4 +47,5 @@ class ServicesContainer(DeclarativeContainer):
         application_repository=repositories.application,
         manifest_builder=manifest_builder,
         kubeconfig_path=config.kubeconfig.path,
+        host_postfix=config.host_postfix
     )
