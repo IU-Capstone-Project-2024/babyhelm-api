@@ -4,8 +4,8 @@ from pydantic import BaseModel, Field, field_validator
 
 
 class Ports(BaseModel):
-    port: int
-    target_port: int = Field(alias="targetPort")
+    port: int = Field(examples=[80], ge=1, le=65_535)
+    target_port: int = Field(alias="targetPort", examples=[80], ge=1, le=65_535)
 
 
 class Deployment(BaseModel):
@@ -23,8 +23,9 @@ class Service(BaseModel):
 
 
 class Env(BaseModel):
-    name: str
-    value: str
+    name: str = Field(examples=["config_path"], min_length=1, max_length=128, pattern=r"^[^{}\[\]:*&^%$#@!~`']+$")
+    value: str = Field(examples=["Users/admin/config/path"], min_length=1, max_length=1024,
+                       pattern=r"^[^{}\[\]:*&^%$#@!~`']+$")
 
 
 class App(BaseModel):
@@ -49,75 +50,26 @@ class NamespaceManifest(BaseModel):
 
 
 class Project(BaseModel):
-    name: str = Field(..., max_length=253)
-
-    model_config = {
-        "json_schema_extra": {"examples": [{"name": "my_awesome_project_name"}]}
-    }
-
-    @field_validator("name")
-    @classmethod
-    def validate_name(cls, v):
-        if not re.match(r"^[a-zA-Z0-9-]+$", v):
-            raise ValueError(
-                "Name must contain only alphanumeric characters and hyphens."
-            )
-        return v
+    """
+    Project data provided by user
+    """
+    name: str = Field(max_length=253, examples=["My-project1", "my-awesome-project"], pattern=r"^[a-zA-Z0-9-]+$")
 
 
 class Application(BaseModel):
     """
-    Class for user-side interaction.
+    App data provided by user
     """
 
-    name: str
-    image: str
+    name: str = Field(
+        max_length=128,
+        examples=["sunflower", "snowflake"],
+        pattern=r"^[^{}\[\]:,*&^%$#@!~`\"']+$",
+    )
+    image: str = Field(
+        max_length=2048,
+        examples=["nginx"],
+        pattern=r"^[^{}\[\]*&^%$#@!~`']+$",
+    )
     ports: Ports
     envs: list[Env]
-
-    model_config = {
-        "json_schema_extra": {
-            "examples": [
-                {
-                    "name": "sunflower",
-                    "image": "nginx",
-                    "ports": {
-                        "port": 80,
-                        "target_port": 80,
-                    },
-                    "envs": [{"name": "config_path", "value": "config/path"}],
-                }
-            ]
-        }
-    }
-
-    @field_validator("name")
-    @classmethod
-    def validate_name(cls, v):
-        forbidden_symbols = "{}[]:,*&^%$#@!~`\"'"
-        if any(symb in v for symb in forbidden_symbols):
-            raise ValueError(
-                f"Name should not contain forbidden symbols: {forbidden_symbols}"
-            )
-        return v
-
-    @field_validator("image")
-    @classmethod
-    def validate_image(cls, v):
-        forbidden_symbols = "{}[]*&^%$#@!~`'"
-        if any(symb in v for symb in forbidden_symbols):
-            raise ValueError(
-                f"Image should not contain forbidden symbols: {forbidden_symbols}"
-            )
-        return v
-
-    @field_validator("envs")
-    @classmethod
-    def validate_envs(cls, v):
-        forbidden_symbols = "{}[]:*&^%$#@!~`'"
-        for env in v:
-            if any(symb in env.name or symb in env.value for symb in forbidden_symbols):
-                raise ValueError(
-                    f"Env name/value should not contain forbidden symbols: {forbidden_symbols}"
-                )
-        return v
