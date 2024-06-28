@@ -7,19 +7,23 @@ from sqlalchemy.exc import SQLAlchemyError
 from babyhelm.exceptions.cluster_manager import ClusterError, DatabaseError
 from babyhelm.repositories.application import ApplicationRepository
 from babyhelm.repositories.project import ProjectRepository
-from babyhelm.schemas.cluster_manager import CreateApplicationRequest, CreateApplicationResponse, CreateProjectResponse
+from babyhelm.schemas.cluster_manager import (
+    CreateApplicationRequest,
+    CreateApplicationResponse,
+    CreateProjectResponse,
+)
 from babyhelm.schemas.manifest_builder import Project
 from babyhelm.services.manifest_builder import ManifestBuilderService
 
 
 class ClusterManagerService:
     def __init__(
-            self,
-            project_repository: ProjectRepository,
-            application_repository: ApplicationRepository,
-            manifest_builder: ManifestBuilderService,
-            kubeconfig_path: str,
-            host_postfix: str
+        self,
+        project_repository: ProjectRepository,
+        application_repository: ApplicationRepository,
+        manifest_builder: ManifestBuilderService,
+        kubeconfig_path: str,
+        host_postfix: str,
     ):
         self.host_postfix = host_postfix
         self.project_repository = project_repository
@@ -50,7 +54,9 @@ class ClusterManagerService:
             await self.project_repository.delete(name=project.name)
             raise ClusterError(project.name) from e
 
-    async def create_application(self, app: CreateApplicationRequest) -> CreateApplicationResponse:
+    async def create_application(
+        self, app: CreateApplicationRequest
+    ) -> CreateApplicationResponse:
         application = app.application
         manifests = self.manifest_builder.render_application(application=application)
         project_name = app.project.name

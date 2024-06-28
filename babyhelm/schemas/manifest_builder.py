@@ -1,6 +1,4 @@
-import re
-
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field
 
 
 class Ports(BaseModel):
@@ -23,9 +21,18 @@ class Service(BaseModel):
 
 
 class Env(BaseModel):
-    name: str = Field(examples=["config_path"], min_length=1, max_length=128, pattern=r"^[^{}\[\]:*&^%$#@!~`']+$")
-    value: str = Field(examples=["Users/admin/config/path"], min_length=1, max_length=1024,
-                       pattern=r"^[^{}\[\]:*&^%$#@!~`']+$")
+    name: str = Field(
+        examples=["config_path"],
+        min_length=1,
+        max_length=128,
+        pattern=r"^[^{}\[\]:*&^%$#@!~`']+$",
+    )
+    value: str = Field(
+        examples=["Users/admin/config/path"],
+        min_length=1,
+        max_length=1024,
+        pattern=r"^[^{}\[\]:*&^%$#@!~`']+$",
+    )
 
 
 class App(BaseModel):
@@ -53,7 +60,12 @@ class Project(BaseModel):
     """
     Project data provided by user
     """
-    name: str = Field(max_length=253, examples=["My-project1", "my-awesome-project"], pattern=r"^[a-zA-Z0-9-]+$")
+
+    name: str = Field(
+        max_length=253,
+        examples=["My-project1", "my-awesome-project"],
+        pattern=r"^[a-zA-Z0-9-]+$",
+    )
 
 
 class Application(BaseModel):
