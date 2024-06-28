@@ -12,3 +12,4 @@ auth:
   refresh_token_expire_days: 30
 kubeconfig:
   path: "local/kubeconfig.yaml"
+host_postfix: "svc.taila53571.ts.net"

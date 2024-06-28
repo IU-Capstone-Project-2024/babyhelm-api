@@ -10,7 +10,7 @@ from babyhelm.services.manifest_builder import ManifestBuilderService
 router = APIRouter(prefix="/manifests", tags=["Manifests"])
 
 
-@router.post("/render")
+@router.post("/render", deprecated=True)
 @inject
 async def render_manifests(
     application: Application,
