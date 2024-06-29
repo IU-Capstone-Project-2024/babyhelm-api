@@ -51,3 +51,18 @@ async def get_me(
     """
     user: ResponseUserScheme = await user_service.get(user_id)
     return user
+
+
+@router.post("/refresh-access-token", response_model=TokenSchema, status_code=status.HTTP_200_OK)
+@inject
+async def refresh_access_token(
+    refresh_token: str,
+    auth_service: AuthService = fastapi.Depends(
+        Provide[ApplicationContainer.services.auth],
+    ),
+):
+    try:
+        new_access_token = await auth_service.refresh_access_token(refresh_token)
+        return TokenSchema(access_token=new_access_token, refresh_token=refresh_token, token_type="Bearer")
+    except Exception as e:
+        raise fastapi.HTTPException(status_code=401, detail=str(e))
