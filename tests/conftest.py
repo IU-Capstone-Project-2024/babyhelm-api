@@ -11,6 +11,7 @@ from babyhelm.containers.application import ApplicationContainer
 from babyhelm.gateways.database import Database
 from babyhelm.models import Base
 from babyhelm.schemas.manifest_builder import Application, Project
+from babyhelm.schemas.user import UserSchema
 
 CONFIG_FILE = "config/config.test.yaml"
 MOCK_DB_URL = "sqlite+aiosqlite:///test.db"
@@ -166,3 +167,11 @@ def render_namespace_results():
         "kind": "Namespace",
         "metadata": {"name": "MyPerfectApp"},
     }
+
+
+@pytest.fixture()
+def sample_user():
+    return UserSchema(
+            id=1,
+            email="string@gmail.com"
+    )
