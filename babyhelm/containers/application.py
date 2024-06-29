@@ -17,7 +17,8 @@ class ApplicationContainer(DeclarativeContainer):
         modules=[
             "babyhelm.routers.manifest_builder",
             "babyhelm.routers.user",
-            "babyhelm.routers.cluster_manager",
+            "babyhelm.routers.cluster_manager.applications",
+            "babyhelm.routers.cluster_manager.projects",
             "babyhelm.services.auth.dependencies",
         ],
     )
