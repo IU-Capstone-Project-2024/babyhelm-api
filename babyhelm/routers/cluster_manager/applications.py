@@ -13,9 +13,10 @@ from babyhelm.services.cluster_manager import ClusterManagerService
 router = APIRouter(prefix="/applications", tags=["Applications"])
 
 
-@router.post("", status_code=status.HTTP_201_CREATED)
+@router.post("/{project_name}", status_code=status.HTTP_201_CREATED)
 @inject
 async def create_application(
+    project_name: str,
     app: CreateApplicationRequest,
     user_id: CURRENT_USER_ID_DEPENDENCY,
     cluster_manager_service: ClusterManagerService = Depends(
@@ -23,7 +24,9 @@ async def create_application(
     ),
 ) -> ApplicationWithLinkSchema:
     # TODO assure that user has permissions (by auth service)
-    return await cluster_manager_service.create_application(app=app)
+    return await cluster_manager_service.create_application(
+        app=app, project_name=project_name
+    )
 
 
 @router.get("/{project_name}/{application_name}")

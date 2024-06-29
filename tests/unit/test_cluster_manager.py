@@ -193,9 +193,10 @@ class TestClusterManagerService:
         create_application_request,
         application_repository,
         manifest_builder,
+        sample_project,
     ):
         response = await cluster_manager_service.create_application(
-            create_application_request
+            create_application_request, sample_project.name
         )
         assert isinstance(response, ApplicationWithLinkSchema)
         assert response.deployment_link == "sampleProject-sample_app-example.com"
@@ -210,10 +211,13 @@ class TestClusterManagerService:
         cluster_manager_service,
         create_application_request,
         application_repository,
+        sample_project,
     ):
         application_repository.create.side_effect = SQLAlchemyError
         with pytest.raises(DatabaseError):
-            await cluster_manager_service.create_application(create_application_request)
+            await cluster_manager_service.create_application(
+                create_application_request, sample_project.name
+            )
         application_repository.create.assert_called_once()
 
     @pytest.mark.asyncio()
@@ -224,12 +228,13 @@ class TestClusterManagerService:
         application_repository,
         manifest_builder,
         sample_application,
+        sample_project,
     ):
         with patch("kubernetes.utils.create_from_dict") as mock_create_from_dict:
             mock_create_from_dict.side_effect = FailToCreateError([MockAPIException()])
             with pytest.raises(ClusterError):
                 await cluster_manager_service.create_application(
-                    create_application_request
+                    create_application_request, sample_project.name
                 )
             application_repository.create.assert_called_once()
             application_repository.delete.assert_called_once_with(

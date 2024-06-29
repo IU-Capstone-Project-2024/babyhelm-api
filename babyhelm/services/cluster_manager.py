@@ -67,11 +67,10 @@ class ClusterManagerService:
             raise ClusterError(project.name) from e
 
     async def create_application(
-        self, app: CreateApplicationRequest
+        self, app: CreateApplicationRequest, project_name: str
     ) -> ApplicationWithLinkSchema:
         application = app.application
         manifests = self.manifest_builder.render_application(application=application)
-        project_name = app.project.name
         try:
             await self.application_repository.create(
                 name=application.name,

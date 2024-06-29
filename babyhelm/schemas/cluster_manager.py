@@ -2,7 +2,7 @@ from copy import deepcopy
 
 from pydantic import BaseModel, ConfigDict
 
-from babyhelm.schemas.manifest_builder import Application, Project
+from babyhelm.schemas.manifest_builder import Application
 from babyhelm.schemas.user import USER_EXAMPLE, UserSchema
 
 APPLICATION_EXAMPLE = {"name": "some-application", "image": "docker.io/nginx:latest"}
@@ -19,7 +19,6 @@ PROJECT_EXAMPLE = {
 
 class CreateApplicationRequest(BaseModel):
     application: Application
-    project: Project
 
 
 class ApplicationSchema(BaseModel):
