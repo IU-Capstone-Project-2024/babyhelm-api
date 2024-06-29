@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, status
 from babyhelm.containers.application import ApplicationContainer
 from babyhelm.schemas.cluster_manager import (
     ApplicationSchema,
+    ApplicationWithLinkSchema,
     CreateApplicationRequest,
 )
 from babyhelm.services.auth.dependencies import CURRENT_USER_ID_DEPENDENCY
@@ -20,7 +21,7 @@ async def create_application(
     cluster_manager_service: ClusterManagerService = Depends(
         Provide[ApplicationContainer.services.cluster_manager]
     ),
-) -> ApplicationSchema:
+) -> ApplicationWithLinkSchema:
     # TODO assure that user has permissions (by auth service)
     return await cluster_manager_service.create_application(app=app)
 
@@ -52,9 +53,7 @@ async def list_application(
     ),
 ) -> list[ApplicationSchema]:
     # TODO assure that user has permissions (by auth service)
-    apps = await cluster_manager_service.list_applications_response(
-        project_name=project_name
-    )
+    apps = await cluster_manager_service.list_applications(project_name=project_name)
     return apps
 
 

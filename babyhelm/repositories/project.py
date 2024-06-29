@@ -1,6 +1,6 @@
 import sqlalchemy as sa
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import contains_eager, selectinload
+from sqlalchemy.orm import selectinload
 
 from babyhelm.gateways.database import Database
 from babyhelm.models import User
@@ -61,7 +61,7 @@ class ProjectRepository:
             return (await session_.scalars(stmt)).all()  # noqa
 
     async def get(
-        self, name: str, options: tuple = tuple(), session: AsyncSession | None = None
+        self, name: str, options: tuple = tuple, session: AsyncSession | None = None
     ) -> Project:
         async with self.db.session(session) as session_:
             stmt = sa.select(Project).options(*options).where(Project.name == name)

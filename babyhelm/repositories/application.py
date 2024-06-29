@@ -1,5 +1,3 @@
-import logging
-
 import sqlalchemy as sa
 from sqlalchemy.ext.asyncio import AsyncSession
 

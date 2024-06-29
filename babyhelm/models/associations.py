@@ -1,5 +1,4 @@
-from sqlalchemy import Column, ForeignKey
-from sqlalchemy import Table
+from sqlalchemy import Column, ForeignKey, Table
 
 from babyhelm.models.base import Base
 

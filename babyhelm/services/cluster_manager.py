@@ -7,16 +7,16 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import selectinload
 
 from babyhelm.exceptions.cluster_manager import ClusterError, DatabaseError
-from babyhelm.models import Application
+from babyhelm.models.project import Project as ProjectModel
 from babyhelm.repositories.application import ApplicationRepository
 from babyhelm.repositories.project import ProjectRepository
 from babyhelm.schemas.cluster_manager import (
     ApplicationSchema,
+    ApplicationWithLinkSchema,
     CreateApplicationRequest,
     ProjectSchema,
 )
 from babyhelm.schemas.manifest_builder import Project
-from babyhelm.models.project import Project as ProjectModel
 from babyhelm.services.manifest_builder import ManifestBuilderService
 from babyhelm.services.user import UserService
 
@@ -57,9 +57,8 @@ class ClusterManagerService:
         try:
             await self.project_repository.create(name=project.name, user_id=user_id)
             utils.create_from_dict(self.k8s_client, data=manifest.namespace)
-            project = await self.get_project(project_name=project.name)
             # TODO add monitoring links provision
-            return ProjectSchema.from_orm(project)
+            return await self.get_project(project_name=project.name)
         except SQLAlchemyError as e:
             raise DatabaseError(project.name) from e
         except utils.FailToCreateError as e:
@@ -69,7 +68,7 @@ class ClusterManagerService:
 
     async def create_application(
         self, app: CreateApplicationRequest
-    ) -> ApplicationSchema:
+    ) -> ApplicationWithLinkSchema:
         application = app.application
         manifests = self.manifest_builder.render_application(application=application)
         project_name = app.project.name
@@ -93,26 +92,24 @@ class ClusterManagerService:
             )
             app_link = self._create_app_link(project_name, application.name)
             # TODO add monitoring links provision
-            return await self.get_application_response(project_name, application.name)
+            app_schema = await self.get_application(project_name, application.name)
+            return ApplicationWithLinkSchema(
+                **app_schema.model_dump(), deployment_link=app_link
+            )
         except SQLAlchemyError as e:
             logging.error(e)
             raise DatabaseError(application.name) from e
         except utils.FailToCreateError as e:
             logging.error(e)
-            app_model = await self.get_application(
-                project_name=project_name, application_name=application.name
+            app_model = await self.application_repository.get(
+                project_name, application.name
             )
             await self.application_repository.delete(application=app_model)
             raise ClusterError(app.application.name) from e
 
     async def list_projects(self, user_id: int):
-        return await self.project_repository.list(user_id)
-
-    async def list_projects_response(self, user_id: int):
-        return [
-            ProjectSchema.from_orm(project)
-            for project in await self.list_projects(user_id)
-        ]
+        projects = await self.project_repository.list(user_id)
+        return [ProjectSchema.from_orm(project) for project in projects]
 
     async def delete_project(self, project_name: str):
         if project_name in self.FORBIDDEN_NAMES:
@@ -128,21 +125,20 @@ class ClusterManagerService:
         v1.delete_namespace(name=project_name)
         await self.project_repository.delete(project)
 
-    async def get_project(self, project_name: str) -> ProjectModel:
-        return await self.project_repository.get(
+    async def get_project(self, project_name: str) -> ProjectSchema:
+        project_model = await self.project_repository.get(
             name=project_name,
             options=(
                 selectinload(ProjectModel.users),
                 selectinload(ProjectModel.applications),
             ),
         )
-
-    async def get_project_response(self, project_name: str) -> ProjectSchema:
-        project = await self.get_project(project_name)
-        return ProjectSchema.from_orm(project)
+        return ProjectSchema.from_orm(project_model)
 
     async def delete_application(self, project_name: str, application_name: str):
-        application = await self.get_application(project_name, application_name)
+        application = await self.application_repository.get(
+            project_name, application_name
+        )
         v1 = client.AppsV1Api(self.k8s_client)
         v1_core = client.CoreV1Api(self.k8s_client)
         autoscaling_v1 = client.AutoscalingV1Api(self.k8s_client)
@@ -161,32 +157,23 @@ class ClusterManagerService:
 
     async def get_application(
         self, project_name: str, application_name: str
-    ) -> Application:
+    ) -> ApplicationSchema:
         application = await self.application_repository.get(
             project_name, application_name
         )
-        return application
-
-    async def get_application_response(
-        self, project_name: str, application_name: str
-    ) -> ApplicationSchema:
-        application = await self.get_application(project_name, application_name)
         return ApplicationSchema.from_orm(application)
 
-    async def list_applications(self, project_name: str) -> list[Application]:
+    async def list_applications(self, project_name: str) -> list[ApplicationSchema]:
         project = await self.project_repository.get(name=project_name)
         if project is None:
             raise ValueError("Project does not exist")
-        return await self.application_repository.list(project_name=project_name)
-
-    async def list_applications_response(
-        self, project_name: str
-    ) -> list[ApplicationSchema]:
-        applications = await self.list_applications(project_name)
+        applications = await self.application_repository.list(project_name=project_name)
         return [ApplicationSchema.from_orm(app) for app in applications]
 
     async def restart_application(self, project_name: str, application_name: str):
-        application = await self.get_application(project_name, application_name)
+        application = await self.application_repository.get(
+            project_name, application_name
+        )
         now = datetime.datetime.utcnow()
         v1 = client.AppsV1Api(self.k8s_client)
         v1.patch_namespaced_deployment(

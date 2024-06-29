@@ -1,9 +1,14 @@
+from copy import deepcopy
+
 from pydantic import BaseModel, ConfigDict
 
 from babyhelm.schemas.manifest_builder import Application, Project
 from babyhelm.schemas.user import USER_EXAMPLE, UserSchema
 
 APPLICATION_EXAMPLE = {"name": "some-application", "image": "docker.io/nginx:latest"}
+
+APPLICATION_WITH_LINK_EXAMPLE = deepcopy(APPLICATION_EXAMPLE)
+APPLICATION_WITH_LINK_EXAMPLE["deployment_link"] = "https://some-link.com/my-app"
 
 PROJECT_EXAMPLE = {
     "name": "some-project",
@@ -34,3 +39,12 @@ class ProjectSchema(BaseModel):
     name: str
     applications: list[ApplicationSchema] = []
     users: list[UserSchema] = []
+
+
+class ApplicationWithLinkSchema(ApplicationSchema):
+    model_config = ConfigDict(
+        from_attributes=True,
+        json_schema_extra={"examples": [APPLICATION_WITH_LINK_EXAMPLE]},
+    )
+
+    deployment_link: str

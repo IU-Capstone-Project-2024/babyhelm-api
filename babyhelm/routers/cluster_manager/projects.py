@@ -44,7 +44,7 @@ async def list_projects(
         Provide[ApplicationContainer.services.cluster_manager]
     ),
 ) -> list[ProjectSchema]:
-    return await cluster_manager_service.list_projects_response(user_id)
+    return await cluster_manager_service.list_projects(user_id)
 
 
 @router.get("/{project-name}")
@@ -57,4 +57,4 @@ async def get_project(
     ),
 ) -> ProjectSchema:
     # TODO assure that user has permissions (by auth service)
-    return await cluster_manager_service.get_project_response(project_name)
+    return await cluster_manager_service.get_project(project_name)
