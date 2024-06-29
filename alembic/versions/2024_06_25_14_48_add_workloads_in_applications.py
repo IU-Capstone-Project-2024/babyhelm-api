@@ -32,7 +32,7 @@ def upgrade() -> None:
     # ### end Alembic commands ###
     op.execute("UPDATE applications SET service_name = name || '-svc' WHERE service_name IS NULL")
     op.execute("UPDATE applications SET deployment_name = name || '-deployment' WHERE service_name IS NULL")
-    op.execute("UPDATE applications SET autoscaler_name = name || '-hpa' WHERE service_name IS NULL")
+    op.execute("UPDATE applications SET autoscaler_name = name || '-autoscaler' WHERE service_name IS NULL")
 
     op.alter_column("applications", "service_name", nullable=False)
     op.alter_column("applications", "deployment_name", nullable=False)
