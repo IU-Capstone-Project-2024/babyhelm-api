@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+from typing import TYPE_CHECKING
 
 import bcrypt
 import jwt
@@ -9,9 +10,11 @@ from babyhelm.exceptions.auth import (
     TokenExpiredError,
 )
 from babyhelm.models import User
-from babyhelm.repositories.user import UserRepository
 from babyhelm.schemas.auth import TokenEnum, TokenSchema
-from babyhelm.schemas.user import ResponseUserScheme
+from babyhelm.schemas.user import ResponseUserSchema
+
+if TYPE_CHECKING:
+    from babyhelm.services.user import UserService
 
 
 class AuthService:
@@ -20,7 +23,7 @@ class AuthService:
         secret_key: str,
         access_token_expiration: int,
         refresh_token_expiration: int,
-        user_repository: UserRepository,
+        user_service: "UserService",
         algorithm: str = "HS256",
     ):
         self.secret_key = secret_key
@@ -28,14 +31,16 @@ class AuthService:
         self.access_token_expiration = access_token_expiration
         self.refresh_token_expiration = refresh_token_expiration
 
-        self.user_repository = user_repository
+        self.user_service = user_service
 
-    def hash_password(self, password: str) -> str:
+    @staticmethod
+    def hash_password(password: str) -> str:
         salt = bcrypt.gensalt()
         hashed = bcrypt.hashpw(password.encode(), salt)
         return hashed.decode()
 
-    def verify_password(self, password: str, hashed_password: str) -> bool:
+    @staticmethod
+    def verify_password(password: str, hashed_password: str) -> bool:
         return bcrypt.checkpw(password.encode(), hashed_password.encode())
 
     def create_token(self, data: dict, token_type: TokenEnum) -> str:
@@ -49,7 +54,7 @@ class AuthService:
 
     def decode_jwt(self, token: str) -> dict:
         try:
-            decoded_token = jwt.decode(
+            decoded_token: dict = jwt.decode(
                 token, self.secret_key, algorithms=[self.algorithm]
             )
             return decoded_token
@@ -59,7 +64,7 @@ class AuthService:
             raise InvalidTokenError()
 
     async def authenticate_user(self, email: str, password: str) -> TokenSchema:
-        user: ResponseUserScheme = await self.user_repository.get(User.email == email)
+        user: ResponseUserSchema = await self.user_service.get(User.email == email)
         if not user or not self.verify_password(password, user.hashed_password):
             raise InvalidCredentialsError()
 
@@ -81,11 +86,13 @@ class AuthService:
             if not user_id:
                 raise InvalidTokenError("Invalid token")
 
-            user = await self.user_repository.get_by_id(user_id)
+            user: ResponseUserSchema = await self.user_service.get(User.id == user_id)
             if not user:
                 raise InvalidCredentialsError("User not found")
 
-            access_token = self.create_token(data={"sub": user.id}, token_type=TokenEnum.ACCESS)
+            access_token = self.create_token(
+                data={"sub": user.id}, token_type=TokenEnum.ACCESS
+            )
             return access_token
         except (TokenExpiredError, InvalidTokenError):
             raise
