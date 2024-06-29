@@ -7,6 +7,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from babyhelm.exceptions.cluster_manager import ClusterError, DatabaseError
 from babyhelm.repositories.application import ApplicationRepository
 from babyhelm.repositories.project import ProjectRepository
+from babyhelm.repositories.user import UserRepository
 from babyhelm.schemas.cluster_manager import (
     ApplicationWithLinkSchema,
     CreateApplicationRequest,
@@ -86,13 +87,21 @@ def host_postfix():
 
 
 @pytest.fixture()
+def user_repository(sample_user_model):
+    user_repo = AsyncMock(spec=UserRepository)
+    user_repo.get.return_value = sample_user_model
+
+    return user_repo
+
+
+@pytest.fixture()
 def cluster_manager_service(
     project_repository,
     application_repository,
     manifest_builder,
     kubeconfig_path,
     host_postfix,
-    user_service,
+    user_repository,
 ):
     with patch("kubernetes.config.new_client_from_config_dict") as mock_k8s_client:
         mock_k8s_client.return_value = MagicMock()
@@ -100,7 +109,7 @@ def cluster_manager_service(
             project_repository=project_repository,
             application_repository=application_repository,
             manifest_builder=manifest_builder,
-            user_service=user_service,
+            user_repository=user_repository,
             kubeconfig_path=kubeconfig_path,
             host_postfix=host_postfix,
         )
@@ -139,13 +148,14 @@ class TestClusterManagerService:
         project_repository,
         manifest_builder,
         sample_user,
+        sample_user_model,
     ):
         response = await cluster_manager_service.create_project(
             sample_project, sample_user.id
         )
         assert isinstance(response, ProjectSchema)
         project_repository.create.assert_called_once_with(
-            name=sample_project.name, user_id=sample_user.id
+            name=sample_project.name, user=sample_user_model
         )
         manifest_builder.render_namespace.assert_called_once_with(
             project=sample_project
@@ -153,13 +163,18 @@ class TestClusterManagerService:
 
     @pytest.mark.asyncio()
     async def test_create_project_database_error(
-        self, cluster_manager_service, sample_project, project_repository, sample_user
+        self,
+        cluster_manager_service,
+        sample_project,
+        project_repository,
+        sample_user,
+        sample_user_model,
     ):
         project_repository.create.side_effect = SQLAlchemyError
         with pytest.raises(DatabaseError):
             await cluster_manager_service.create_project(sample_project, sample_user.id)
         project_repository.create.assert_called_once_with(
-            name=sample_project.name, user_id=sample_user.id
+            name=sample_project.name, user=sample_user_model
         )
 
     @pytest.mark.asyncio()
@@ -171,6 +186,7 @@ class TestClusterManagerService:
         manifest_builder,
         sample_user,
         sample_project_schema,
+        sample_user_model,
     ):
         with patch("kubernetes.utils.create_from_dict") as mock_create_from_dict:
             mock_create_from_dict.side_effect = FailToCreateError([MockAPIException()])
@@ -179,7 +195,7 @@ class TestClusterManagerService:
                     sample_project, sample_user.id
                 )
             project_repository.create.assert_called_once_with(
-                name=sample_project.name, user_id=sample_user.id
+                name=sample_project.name, user=sample_user_model
             )
             project_repository.delete.assert_called_once_with(sample_project_schema)
             manifest_builder.render_namespace.assert_called_once_with(

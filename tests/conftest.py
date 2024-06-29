@@ -10,6 +10,7 @@ from babyhelm.app import create_app
 from babyhelm.containers.application import ApplicationContainer
 from babyhelm.gateways.database import Database
 from babyhelm.models import Base
+from babyhelm.models import User as UserModel
 from babyhelm.schemas.manifest_builder import Application, Project
 from babyhelm.schemas.user import UserSchema
 
@@ -172,3 +173,8 @@ def render_namespace_results():
 @pytest.fixture()
 def sample_user():
     return UserSchema(id=1, email="string@gmail.com")
+
+
+@pytest.fixture()
+def sample_user_model(sample_user):
+    return UserModel(id=sample_user.id, email=sample_user.email, projects=[])

@@ -17,18 +17,8 @@ class ProjectRepository:
     def __init__(self, db: Database):
         self.db = db
 
-    async def replace_me_with_user_repository_method(
-        self, user_id: int, session: AsyncSession | None = None
-    ) -> User:
-        async with self.db.session(session) as session:
-            stmt = sa.select(User).where(User.id == user_id)
-            return await session.scalar(stmt)
-
-    async def create(
-        self, name: str, user_id: int, session: AsyncSession | None = None
-    ):
+    async def create(self, name: str, user: User, session: AsyncSession | None = None):
         project = Project(name=name)
-        user = await self.replace_me_with_user_repository_method(user_id)
         project.users.append(user)
         async with self.db.session(session) as session:
             session.add(project)

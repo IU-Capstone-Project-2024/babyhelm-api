@@ -8,8 +8,10 @@ from sqlalchemy.orm import selectinload
 
 from babyhelm.exceptions.cluster_manager import ClusterError, DatabaseError
 from babyhelm.models.project import Project as ProjectModel
+from babyhelm.models.user import User as UserModel
 from babyhelm.repositories.application import ApplicationRepository
 from babyhelm.repositories.project import ProjectRepository
+from babyhelm.repositories.user import UserRepository
 from babyhelm.schemas.cluster_manager import (
     ApplicationSchema,
     ApplicationWithLinkSchema,
@@ -18,7 +20,6 @@ from babyhelm.schemas.cluster_manager import (
 )
 from babyhelm.schemas.manifest_builder import Project
 from babyhelm.services.manifest_builder import ManifestBuilderService
-from babyhelm.services.user import UserService
 
 
 class ClusterManagerService:
@@ -28,8 +29,8 @@ class ClusterManagerService:
         self,
         project_repository: ProjectRepository,
         application_repository: ApplicationRepository,
+        user_repository: UserRepository,
         manifest_builder: ManifestBuilderService,
-        user_service: UserService,
         kubeconfig_path: str,
         host_postfix: str,
     ):
@@ -37,7 +38,7 @@ class ClusterManagerService:
         self.project_repository = project_repository
         self.application_repository = application_repository
         self.manifest_builder = manifest_builder
-        self.user_service = user_service
+        self.user_repository = user_repository
 
         self.k8s_client = config.new_client_from_config_dict(
             yaml.safe_load(open(kubeconfig_path, "r"))
@@ -54,8 +55,9 @@ class ClusterManagerService:
         if project.name in self.FORBIDDEN_NAMES:
             raise ValueError(f"Project name {project.name} is forbidden")
         manifest = self.manifest_builder.render_namespace(project=project)
+        user = await self.user_repository.get(UserModel.id == user_id)
         try:
-            await self.project_repository.create(name=project.name, user_id=user_id)
+            await self.project_repository.create(name=project.name, user=user)
             utils.create_from_dict(self.k8s_client, data=manifest.namespace)
             # TODO add monitoring links provision
             return await self.get_project(project_name=project.name)
