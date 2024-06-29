@@ -171,7 +171,4 @@ def render_namespace_results():
 
 @pytest.fixture()
 def sample_user():
-    return UserSchema(
-            id=1,
-            email="string@gmail.com"
-    )
+    return UserSchema(id=1, email="string@gmail.com")
