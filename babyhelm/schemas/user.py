@@ -3,12 +3,12 @@ import datetime
 from pydantic import BaseModel, ConfigDict, EmailStr
 
 
-class AuthUserScheme(BaseModel):
+class AuthUserSchema(BaseModel):
     email: EmailStr
     raw_password: str
 
 
-class ResponseUserScheme(BaseModel):
+class ResponseUserSchema(BaseModel):
     id: int
     email: EmailStr
     created: datetime.datetime
