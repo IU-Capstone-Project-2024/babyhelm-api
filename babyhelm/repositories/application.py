@@ -1,3 +1,5 @@
+import logging
+
 import sqlalchemy as sa
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -37,13 +39,27 @@ class ApplicationRepository:
             await session_.commit()
 
     async def delete(
-        self, name: str, project_name: str, session: AsyncSession | None = None
+        self, application: Application, session: AsyncSession | None = None
     ):
         async with self.db.session(session) as session_:
+            session_: AsyncSession
+            await session_.delete(application)
+            await session_.commit()
+
+    async def get(self, project_name: str, application_name: str) -> Application:
+        async with self.db.session() as session_:
+            session_: AsyncSession
             statement = (
-                sa.delete(Application)
-                .where(Application.name == name)
+                sa.select(Application)
+                .where(Application.name == application_name)
                 .where(Application.project_name == project_name)
             )
-            await session_.execute(statement)
-            await session_.commit()
+            return await session_.scalar(statement)
+
+    async def list(self, project_name: str) -> list[Application]:
+        async with self.db.session() as session_:
+            session_: AsyncSession
+            stmt = sa.select(Application).where(
+                Application.project_name == project_name
+            )
+            return (await session_.scalars(stmt)).all()  # noqa

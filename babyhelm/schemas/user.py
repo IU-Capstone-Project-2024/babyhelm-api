@@ -2,6 +2,11 @@ import datetime
 
 from pydantic import BaseModel, ConfigDict, EmailStr
 
+USER_EXAMPLE = {
+    "id": 1,
+    "email": "string@gmail.com",
+}
+
 
 class AuthUserScheme(BaseModel):
     email: EmailStr
@@ -16,3 +21,12 @@ class ResponseUserScheme(BaseModel):
     hashed_password: str
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class UserSchema(BaseModel):
+    model_config = ConfigDict(
+        from_attributes=True, json_schema_extra={"examples": [USER_EXAMPLE]}
+    )
+
+    id: int
+    email: EmailStr

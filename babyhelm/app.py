@@ -10,7 +10,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from prometheus_fastapi_instrumentator import Instrumentator
 
 from babyhelm.containers.application import ApplicationContainer
-from babyhelm.exception_handlers import exception_handlers_list
+
+# from babyhelm.exception_handlers import exception_handlers_list
 from babyhelm.routers import routers_list
 
 
@@ -94,8 +95,8 @@ def create_app(container: ApplicationContainer | None = None):
     for router in routers_list:
         app.include_router(router)
 
-    for handler_info in exception_handlers_list:
-        app.add_exception_handler(**handler_info)
+    # for handler_info in exception_handlers_list:
+    #     app.add_exception_handler(**handler_info)
 
     app.state.container = container
 
