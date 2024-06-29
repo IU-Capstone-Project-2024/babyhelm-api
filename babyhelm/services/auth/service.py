@@ -79,7 +79,7 @@ class AuthService:
             access_token=access_token, refresh_token=refresh_token, token_type="Bearer"
         )
 
-    async def refresh_access_token(self, refresh_token: str) -> str:
+    async def refresh_access_token(self, refresh_token: str) -> TokenSchema:
         try:
             decoded_token = self.decode_jwt(refresh_token)
             user_id = decoded_token.get("sub")
@@ -93,6 +93,10 @@ class AuthService:
             access_token = self.create_token(
                 data={"sub": user.id}, token_type=TokenEnum.ACCESS
             )
-            return access_token
+            return TokenSchema(
+                access_token=access_token,
+                refresh_token=refresh_token,
+                token_type="Bearer",
+            )
         except (TokenExpiredError, InvalidTokenError):
             raise

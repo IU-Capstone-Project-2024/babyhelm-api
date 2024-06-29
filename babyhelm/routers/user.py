@@ -50,8 +50,7 @@ async def get_me(
     ),
 ) -> ResponseUserSchema:
     """Get current user info if authenticated."""
-    user: ResponseUserSchema = await user_service.get(User.id == user_id)
-    return user
+    return await user_service.get(User.id == user_id)
 
 
 @router.post("/refresh_token", status_code=status.HTTP_200_OK)
@@ -63,9 +62,4 @@ async def refresh_access_token(
     ),
 ) -> TokenSchema:
     """Refresh an access token based on a refresh token."""
-    new_access_token: str = await auth_service.refresh_access_token(refresh_token)
-    return TokenSchema(
-        access_token=new_access_token,
-        refresh_token=refresh_token,
-        token_type="Bearer",
-    )
+    return await auth_service.refresh_access_token(refresh_token)
