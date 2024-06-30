@@ -5,7 +5,7 @@ from starlette import status
 from babyhelm.containers.application import ApplicationContainer
 from babyhelm.models import User
 from babyhelm.schemas.auth import TokenSchema
-from babyhelm.schemas.user import AuthUserSchema, ResponseUserSchema, UserSchema
+from babyhelm.schemas.user import AuthUserSchema, UserSchema
 from babyhelm.services.auth.dependencies import CURRENT_USER_ID_DEPENDENCY
 from babyhelm.services.auth.service import AuthService
 from babyhelm.services.user import UserService
@@ -50,7 +50,9 @@ async def get_me(
     ),
 ) -> UserSchema:
     """Get current user info if authenticated."""
-    return UserSchema.model_validate((await user_service.get(User.id == user_id)).model_dump())
+    return UserSchema.model_validate(
+        (await user_service.get(User.id == user_id)).model_dump()
+    )
 
 
 @router.post("/refresh_token", status_code=status.HTTP_200_OK)
