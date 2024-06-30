@@ -5,7 +5,7 @@ from starlette import status
 from babyhelm.containers.application import ApplicationContainer
 from babyhelm.models import User
 from babyhelm.schemas.auth import TokenSchema
-from babyhelm.schemas.user import AuthUserSchema, ResponseUserSchema
+from babyhelm.schemas.user import AuthUserSchema, ResponseUserSchema, UserSchema
 from babyhelm.services.auth.dependencies import CURRENT_USER_ID_DEPENDENCY
 from babyhelm.services.auth.service import AuthService
 from babyhelm.services.user import UserService
@@ -48,9 +48,9 @@ async def get_me(
     user_service: UserService = fastapi.Depends(
         Provide[ApplicationContainer.services.user],
     ),
-) -> ResponseUserSchema:
+) -> UserSchema:
     """Get current user info if authenticated."""
-    return await user_service.get(User.id == user_id)
+    return UserSchema.model_validate((await user_service.get(User.id == user_id)).model_dump())
 
 
 @router.post("/refresh_token", status_code=status.HTTP_200_OK)
