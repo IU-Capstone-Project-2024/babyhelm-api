@@ -6,7 +6,7 @@ from babyhelm.models.base import Base
 from babyhelm.models.mixins import IdMixin, TimeStampMixin
 
 if TYPE_CHECKING:
-    from babyhelm.models import UserProjectAssociation
+    from babyhelm.models import Project
 
 
 class User(Base, IdMixin, TimeStampMixin):
@@ -16,6 +16,8 @@ class User(Base, IdMixin, TimeStampMixin):
     email: Mapped[str] = mapped_column(nullable=False, unique=True)
     hashed_password: Mapped[str] = mapped_column(nullable=False)
 
-    projects: Mapped[list["UserProjectAssociation"]] = relationship(
-        back_populates="user"
+    projects: Mapped[list["Project"]] = relationship(
+        "Project",
+        secondary="users_projects",
+        back_populates="users",
     )

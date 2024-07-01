@@ -28,24 +28,24 @@ class ServicesContainer(DeclarativeContainer):
         ManifestBuilderService,
         templates_directory=config.templates.path,
     )
+    user: Provider[UserService] = Factory[UserService](
+        UserService,
+        user_repository=repositories.user,
+    )
     auth: Provider[AuthService] = Factory[AuthService](
         AuthService,
         secret_key=config.auth.secret_key,
         algorithm="HS256",
         access_token_expiration=config.auth.access_token_expire_minutes,
         refresh_token_expiration=config.auth.refresh_token_expire_days,
-        user_repository=repositories.user,
-    )
-    user: Provider[UserService] = Factory[UserService](
-        UserService,
-        user_repository=repositories.user,
-        auth_service=auth,
+        user_service=user,
     )
     cluster_manager: Provider[ClusterManagerService] = Factory[ClusterManagerService](
         ClusterManagerService,
         project_repository=repositories.project,
         application_repository=repositories.application,
         manifest_builder=manifest_builder,
+        user_repository=repositories.user,
         kubeconfig_path=config.kubeconfig.path,
         host_postfix=config.host_postfix,
     )

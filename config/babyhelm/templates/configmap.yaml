@@ -19,3 +19,4 @@ data:
         secret_key: {{ .Values.env.password_secret_key }}
       kubeconfig:
         path: "local/kubeconfig.yaml"
+      host_postfix: "svc.taila53571.ts.net"

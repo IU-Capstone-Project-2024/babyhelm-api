@@ -1,17 +1,17 @@
-from babyhelm.models import User
 from babyhelm.repositories.user import UserRepository
-from babyhelm.schemas.user import ResponseUserScheme
+from babyhelm.schemas.user import ResponseUserSchema
 from babyhelm.services.auth.service import AuthService
 
 
 class UserService:
-    def __init__(self, user_repository: UserRepository, auth_service: AuthService):
+    def __init__(self, user_repository: UserRepository):
         self.user_repository = user_repository
-        self.auth_service = auth_service
 
-    async def create(self, email: str, raw_password: str):
-        hashed_password = self.auth_service.hash_password(raw_password)
+    async def create(self, email: str, raw_password: str) -> None:
+        hashed_password = AuthService.hash_password(raw_password)
         await self.user_repository.create(email=email, password=hashed_password)
 
-    async def get(self, user_id: int) -> ResponseUserScheme:
-        return await self.user_repository.get(User.id == user_id)
+    async def get(self, *args) -> ResponseUserSchema | None:
+        user = await self.user_repository.get(*args)
+        if user:
+            return ResponseUserSchema.model_validate(user)

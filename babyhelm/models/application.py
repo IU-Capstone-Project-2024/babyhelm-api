@@ -11,7 +11,7 @@ class Application(Base, TimeStampMixin):
 
     __tablename__ = "applications"
     name: Mapped[str] = mapped_column(nullable=False)
-    project_name: Mapped[int] = mapped_column(
+    project_name: Mapped[str] = mapped_column(
         ForeignKey("projects.name"), nullable=False
     )
     image: Mapped[str] = mapped_column(nullable=False)
