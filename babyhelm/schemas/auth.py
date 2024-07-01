@@ -12,3 +12,6 @@ class TokenSchema(BaseModel):
 class TokenEnum(StrEnum):
     ACCESS = "access"
     REFRESH = "refresh"
+
+class RefreshTokenRequest(BaseModel):
+    refresh_token: str

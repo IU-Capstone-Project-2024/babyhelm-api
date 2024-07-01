@@ -4,7 +4,7 @@ from starlette import status
 
 from babyhelm.containers.application import ApplicationContainer
 from babyhelm.models import User
-from babyhelm.schemas.auth import TokenSchema
+from babyhelm.schemas.auth import TokenSchema, RefreshTokenRequest
 from babyhelm.schemas.user import AuthUserSchema, ResponseUserSchema
 from babyhelm.services.auth.dependencies import CURRENT_USER_ID_DEPENDENCY
 from babyhelm.services.auth.service import AuthService
@@ -56,10 +56,10 @@ async def get_me(
 @router.post("/refresh_token", status_code=status.HTTP_200_OK)
 @inject
 async def refresh_access_token(
-    refresh_token: str,
+    refresh_token_request: RefreshTokenRequest,
     auth_service: AuthService = fastapi.Depends(
         Provide[ApplicationContainer.services.auth],
     ),
 ) -> TokenSchema:
     """Refresh an access token based on a refresh token."""
-    return await auth_service.refresh_access_token(refresh_token)
+    return await auth_service.refresh_access_token(refresh_token_request.refresh_token)
