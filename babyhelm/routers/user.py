@@ -1,11 +1,12 @@
 import fastapi
 from dependency_injector.wiring import Provide, inject
 from starlette import status
+from starlette.responses import JSONResponse
 
 from babyhelm.containers.application import ApplicationContainer
 from babyhelm.models import User
 from babyhelm.schemas.auth import TokenSchema
-from babyhelm.schemas.user import AuthUserSchema, ResponseUserSchema
+from babyhelm.schemas.user import AuthUserSchema
 from babyhelm.services.auth.dependencies import CURRENT_USER_ID_DEPENDENCY
 from babyhelm.services.auth.service import AuthService
 from babyhelm.services.user import UserService
@@ -48,9 +49,12 @@ async def get_me(
     user_service: UserService = fastapi.Depends(
         Provide[ApplicationContainer.services.user],
     ),
-) -> ResponseUserSchema:
+) -> JSONResponse:
     """Get current user info if authenticated."""
-    return await user_service.get(User.id == user_id)
+    user = await user_service.get(User.id == user_id)
+    return JSONResponse(
+        content=user.dict(exclude={"created", "modified", "hashed_password"})
+    )
 
 
 @router.post("/refresh_token", status_code=status.HTTP_200_OK)
