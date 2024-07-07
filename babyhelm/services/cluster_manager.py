@@ -1,12 +1,21 @@
 import datetime
-import logging
 
 import yaml
 from kubernetes import client, config, utils
-from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import selectinload
 
-from babyhelm.exceptions.cluster_manager import ClusterError, DatabaseError
+from babyhelm.exceptions.auth import UserNotFoundError
+from babyhelm.exceptions.cluster_manager import (
+    ApplicationNameAlreadyTaken,
+    ApplicationNotFound,
+    ApplicationsAreNotEmpty,
+    ClusterError,
+    DatabaseError,
+    ForbiddenProjectName,
+    ProjectNameAlreadyTaken,
+    ProjectNotFound,
+)
 from babyhelm.models.project import Project as ProjectModel
 from babyhelm.models.user import User as UserModel
 from babyhelm.repositories.application import ApplicationRepository
@@ -53,11 +62,16 @@ class ClusterManagerService:
         Namespace - inner term from k8s
         """
         if project.name in self.FORBIDDEN_NAMES:
-            raise ValueError(f"Project name {project.name} is forbidden")
+            raise ForbiddenProjectName(project.name)
         manifest = self.manifest_builder.render_namespace(project=project)
         user = await self.user_repository.get(UserModel.id == user_id)
+        if user is None:
+            raise UserNotFoundError
         try:
-            await self.project_repository.create(name=project.name, user=user)
+            try:
+                await self.project_repository.create(name=project.name, user=user)
+            except IntegrityError:
+                raise ProjectNameAlreadyTaken(project.name)
             utils.create_from_dict(self.k8s_client, data=manifest.namespace)
             # TODO add monitoring links provision
             return await self.get_project(project_name=project.name)
@@ -74,14 +88,18 @@ class ClusterManagerService:
         application = app.application
         manifests = self.manifest_builder.render_application(application=application)
         try:
-            await self.application_repository.create(
-                name=application.name,
-                project_name=project_name,
-                image=application.image,
-                service_name=manifests.service["metadata"]["name"],
-                deployment_name=manifests.deployment["metadata"]["name"],
-                autoscaler_name=manifests.hpa["metadata"]["name"],
-            )
+            try:
+                await self.application_repository.create(
+                    name=application.name,
+                    project_name=project_name,
+                    image=application.image,
+                    service_name=manifests.service["metadata"]["name"],
+                    deployment_name=manifests.deployment["metadata"]["name"],
+                    autoscaler_name=manifests.hpa["metadata"]["name"],
+                )
+            except IntegrityError:
+                raise ApplicationNameAlreadyTaken(application.name)
+
             utils.create_from_dict(
                 self.k8s_client, manifests.deployment, namespace=project_name
             )
@@ -98,10 +116,8 @@ class ClusterManagerService:
                 **app_schema.model_dump(), deployment_link=app_link
             )
         except SQLAlchemyError as e:
-            logging.error(e)
             raise DatabaseError(application.name) from e
         except utils.FailToCreateError as e:
-            logging.error(e)
             app_model = await self.application_repository.get(
                 project_name, application.name
             )
@@ -114,14 +130,14 @@ class ClusterManagerService:
 
     async def delete_project(self, project_name: str):
         if project_name in self.FORBIDDEN_NAMES:
-            raise ValueError(f"Project name {project_name} is forbidden")
+            raise ForbiddenProjectName(project_name)
         project = await self.project_repository.get(
             name=project_name, options=(selectinload(ProjectModel.applications),)
         )
+        if project is None:
+            raise ProjectNotFound
         if project.applications:
-            raise ValueError(
-                "Project still has active applications and cannot be removed"
-            )
+            raise ApplicationsAreNotEmpty(project_name)
         v1 = client.CoreV1Api(self.k8s_client)
         v1.delete_namespace(name=project_name)
         await self.project_repository.delete(project)
@@ -134,12 +150,17 @@ class ClusterManagerService:
                 selectinload(ProjectModel.applications),
             ),
         )
+        if project_model is None:
+            raise ProjectNotFound
         return ProjectSchema.from_orm(project_model)
 
     async def delete_application(self, project_name: str, application_name: str):
         application = await self.application_repository.get(
             project_name, application_name
         )
+        if application is None:
+            raise ApplicationNotFound
+
         v1 = client.AppsV1Api(self.k8s_client)
         v1_core = client.CoreV1Api(self.k8s_client)
         autoscaling_v1 = client.AutoscalingV1Api(self.k8s_client)
@@ -162,12 +183,14 @@ class ClusterManagerService:
         application = await self.application_repository.get(
             project_name, application_name
         )
+        if application is None:
+            raise ApplicationNotFound
         return ApplicationSchema.from_orm(application)
 
     async def list_applications(self, project_name: str) -> list[ApplicationSchema]:
         project = await self.project_repository.get(name=project_name)
         if project is None:
-            raise ValueError("Project does not exist")
+            raise ProjectNotFound
         applications = await self.application_repository.list(project_name=project_name)
         return [ApplicationSchema.from_orm(app) for app in applications]
 
@@ -175,6 +198,8 @@ class ClusterManagerService:
         application = await self.application_repository.get(
             project_name, application_name
         )
+        if application is None:
+            raise ApplicationNotFound
         now = datetime.datetime.utcnow()
         v1 = client.AppsV1Api(self.k8s_client)
         v1.patch_namespaced_deployment(
