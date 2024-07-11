@@ -5,8 +5,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from babyhelm.gateways.database import Database
-from babyhelm.models import User
+from babyhelm.models import User, users_projects
 from babyhelm.models.project import Project
+from babyhelm.services.auth.utils import RoleEnum
 
 
 class ProjectRepository:
@@ -17,14 +18,23 @@ class ProjectRepository:
     def __init__(self, db: Database):
         self.db = db
 
-    async def create(self, name: str, user: User, session: AsyncSession | None = None):
+    async def create(
+        self, name: str, user: User, session: AsyncSession | None = None
+    ) -> None:
         project = Project(name=name)
-        project.users.append(user)
         async with self.db.session(session) as session:
+            stmt = users_projects.insert().values(
+                project_name=project.name, user_id=user.id, role=RoleEnum.creator
+            )
             session.add(project)
             await session.commit()
 
-    async def delete(self, project: Project, session: AsyncSession | None = None):
+            await session.execute(stmt)
+            await session.commit()
+
+    async def delete(
+        self, project: Project, session: AsyncSession | None = None
+    ) -> None:
         async with self.db.session(session) as session_:
             session_: AsyncSession
             await session_.delete(project)

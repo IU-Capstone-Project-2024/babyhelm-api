@@ -63,8 +63,8 @@ class Project(BaseModel):
 
     name: str = Field(
         max_length=253,
-        examples=["My-project1", "my-awesome-project"],
-        pattern=r"^[a-zA-Z0-9-]+$",
+        examples=["my-awesome-project"],
+        pattern=r"[a-z0-9]([-a-z0-9]*[a-z0-9])?",
     )
 
 
