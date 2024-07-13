@@ -12,6 +12,7 @@ from babyhelm.exceptions.auth import (
 from babyhelm.models import User
 from babyhelm.schemas.auth import TokenEnum, TokenSchema
 from babyhelm.schemas.user import ResponseUserSchema
+from babyhelm.services.auth.utils import ActionEnum
 
 if TYPE_CHECKING:
     from babyhelm.services.user import UserService
@@ -40,10 +41,10 @@ class AuthService:
         return hashed.decode()
 
     @staticmethod
-    def verify_password(password: str, hashed_password: str) -> bool:
+    def _verify_password(password: str, hashed_password: str) -> bool:
         return bcrypt.checkpw(password.encode(), hashed_password.encode())
 
-    def create_token(self, data: dict, token_type: TokenEnum) -> str:
+    def _create_token(self, data: dict, token_type: TokenEnum) -> str:
         if token_type == TokenEnum.ACCESS:
             expire = datetime.utcnow() + timedelta(minutes=self.access_token_expiration)
         elif token_type == TokenEnum.REFRESH:
@@ -65,13 +66,13 @@ class AuthService:
 
     async def authenticate_user(self, email: str, password: str) -> TokenSchema:
         user: ResponseUserSchema = await self.user_service.get(User.email == email)
-        if not user or not self.verify_password(password, user.hashed_password):
+        if not user or not self._verify_password(password, user.hashed_password):
             raise InvalidCredentialsError()
 
-        access_token = self.create_token(
+        access_token = self._create_token(
             data={"sub": user.id}, token_type=TokenEnum.ACCESS
         )
-        refresh_token = self.create_token(
+        refresh_token = self._create_token(
             data={"sub": user.id}, token_type=TokenEnum.REFRESH
         )
 
@@ -90,7 +91,7 @@ class AuthService:
             if not user:
                 raise InvalidCredentialsError("User not found")
 
-            access_token = self.create_token(
+            access_token = self._create_token(
                 data={"sub": user.id}, token_type=TokenEnum.ACCESS
             )
             return TokenSchema(
@@ -100,3 +101,8 @@ class AuthService:
             )
         except (TokenExpiredError, InvalidTokenError):
             raise
+
+    async def validate_permissions(
+        self, project_name: str, user_id: int, movement: ActionEnum
+    ) -> bool:
+        ...
