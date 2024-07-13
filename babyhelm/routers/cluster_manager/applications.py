@@ -92,3 +92,19 @@ async def restart_application(
     await cluster_manager_service.restart_application(
         application_name=application_name, project_name=project_name
     )
+
+
+@router.get("/{project_name}/{application_name}/logs")
+@inject
+async def get_logs(
+    project_name: str,
+    application_name: str,
+    user_id: CURRENT_USER_ID_DEPENDENCY,
+    cluster_manager_service: ClusterManagerService = Depends(
+        Provide[ApplicationContainer.services.cluster_manager]
+    ),
+) -> dict:
+    # TODO assure that user has permissions (by auth service)
+    return await cluster_manager_service.get_application_logs(
+        project_name, application_name
+    )

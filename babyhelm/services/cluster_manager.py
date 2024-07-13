@@ -219,3 +219,35 @@ class ClusterManagerService:
                 }
             },
         )
+
+    async def get_application_logs(
+        self, project_name: str, application_name: str
+    ) -> dict:
+        application = await self.application_repository.get(
+            project_name, application_name
+        )
+        if application is None:
+            raise ApplicationNotFound
+
+        v1_api = client.CoreV1Api(self.k8s_client)
+        apps_v1_api = client.AppsV1Api(self.k8s_client)
+
+        deployment = apps_v1_api.read_namespaced_deployment(
+            name=application.deployment_name, namespace=project_name
+        )
+        selector = deployment.spec.selector.match_labels
+
+        label_selector = ",".join([f"{key}={value}" for key, value in selector.items()])
+
+        pods = v1_api.list_namespaced_pod(
+            namespace=project_name, label_selector=label_selector
+        )
+
+        res = {}
+        for pod in pods.items:
+            pod_name = pod.metadata.name
+            log = v1_api.read_namespaced_pod_log(
+                name=pod_name, namespace=project_name, since_seconds=60 * 5
+            )
+            res[pod_name] = log
+        return res
