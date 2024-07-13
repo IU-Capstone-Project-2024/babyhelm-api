@@ -41,10 +41,11 @@ class CheckUserPermissions:
         self.action = action
 
     @inject
-    async def __call__(self, project_name: str, user_id: CURRENT_USER_ID_DEPENDENCY,
+    async def __call__(self, user_id: CURRENT_USER_ID_DEPENDENCY,
+                       project_name: str = None,
                        auth_service: AuthService = Depends(
                            Provide[ApplicationContainer.services.auth]
-                       ), ):
+                       )):
         await auth_service.validate_permissions(
-            project_name, user_id, action=self.action
+            project_name=project_name, user_id=user_id, action=self.action
         )

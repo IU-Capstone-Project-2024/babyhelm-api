@@ -10,8 +10,8 @@ from babyhelm.exceptions.auth import (
     InvalidTokenError,
     TokenExpiredError, InvalidPermissions,
 )
-from babyhelm.exceptions.base import NotFoundError
-from babyhelm.models import Project as ProjectModel, User
+from babyhelm.exceptions.cluster_manager import ProjectNotFound
+from babyhelm.models import User
 from babyhelm.repositories.project import ProjectRepository
 from babyhelm.schemas.auth import TokenEnum, TokenSchema
 from babyhelm.schemas.user import ResponseUserSchema
@@ -107,9 +107,10 @@ class AuthService:
         except (TokenExpiredError, InvalidTokenError):
             raise
 
-    async def validate_permissions(self, project_name: str, user_id: int, action: str):
+    async def validate_permissions(self, user_id: int, action: str, project_name: str = None,
+                                   application_name: str = None):
         role = await self.project_repository.get_user_role(project_name, user_id)
         if role is None:
-            raise NotFoundError(detail="Project for this user not found")
+            raise ProjectNotFound()
         if action not in role_permission_dict[role]:
             raise InvalidPermissions(detail="You do not have enough permissions to perform this action.")

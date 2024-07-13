@@ -7,7 +7,8 @@ from babyhelm.schemas.cluster_manager import (
     ApplicationWithLinkSchema,
     CreateApplicationRequest,
 )
-from babyhelm.services.auth.dependencies import CURRENT_USER_ID_DEPENDENCY
+from babyhelm.services.auth.dependencies import CURRENT_USER_ID_DEPENDENCY, CheckUserPermissions
+from babyhelm.services.auth.utils import ActionEnum
 from babyhelm.services.cluster_manager import ClusterManagerService
 
 router = APIRouter(prefix="/applications", tags=["Applications"])
@@ -16,12 +17,12 @@ router = APIRouter(prefix="/applications", tags=["Applications"])
 @router.post("/{project_name}", status_code=status.HTTP_201_CREATED)
 @inject
 async def create_application(
-    project_name: str,
-    app: CreateApplicationRequest,
-    user_id: CURRENT_USER_ID_DEPENDENCY,
-    cluster_manager_service: ClusterManagerService = Depends(
-        Provide[ApplicationContainer.services.cluster_manager]
-    ),
+        project_name: str,
+        app: CreateApplicationRequest,
+        user_id: CURRENT_USER_ID_DEPENDENCY,
+        cluster_manager_service: ClusterManagerService = Depends(
+            Provide[ApplicationContainer.services.cluster_manager]
+        ),
 ) -> ApplicationWithLinkSchema:
     # TODO assure that user has permissions (by auth service)
     return await cluster_manager_service.create_application(
@@ -32,14 +33,13 @@ async def create_application(
 @router.get("/{project_name}/{application_name}")
 @inject
 async def get_application(
-    project_name: str,
-    application_name: str,
-    user_id: CURRENT_USER_ID_DEPENDENCY,
-    cluster_manager_service: ClusterManagerService = Depends(
-        Provide[ApplicationContainer.services.cluster_manager]
-    ),
+        project_name: str,
+        application_name: str,
+        permitted=Depends(CheckUserPermissions(action=ActionEnum.READ.name)),
+        cluster_manager_service: ClusterManagerService = Depends(
+            Provide[ApplicationContainer.services.cluster_manager]
+        ),
 ) -> ApplicationSchema:
-    # TODO assure that user has permissions (by auth service)
     application = await cluster_manager_service.get_application(
         project_name=project_name, application_name=application_name
     )
@@ -49,13 +49,12 @@ async def get_application(
 @router.get("/{project_name}")
 @inject
 async def list_application(
-    project_name: str,
-    user_id: CURRENT_USER_ID_DEPENDENCY,
-    cluster_manager_service: ClusterManagerService = Depends(
-        Provide[ApplicationContainer.services.cluster_manager]
-    ),
+        project_name: str,
+        permitted=Depends(CheckUserPermissions(action=ActionEnum.READ.name)),
+        cluster_manager_service: ClusterManagerService = Depends(
+            Provide[ApplicationContainer.services.cluster_manager]
+        ),
 ) -> list[ApplicationSchema]:
-    # TODO assure that user has permissions (by auth service)
     apps = await cluster_manager_service.list_applications(project_name=project_name)
     return apps
 
@@ -65,14 +64,13 @@ async def list_application(
 )
 @inject
 async def delete_application(
-    project_name: str,
-    application_name: str,
-    user_id: CURRENT_USER_ID_DEPENDENCY,
-    cluster_manager_service: ClusterManagerService = Depends(
-        Provide[ApplicationContainer.services.cluster_manager]
-    ),
+        project_name: str,
+        application_name: str,
+        permitted=Depends(CheckUserPermissions(action=ActionEnum.DELETE.name)),
+        cluster_manager_service: ClusterManagerService = Depends(
+            Provide[ApplicationContainer.services.cluster_manager]
+        ),
 ):
-    # TODO assure that user has permissions (by auth service)
     await cluster_manager_service.delete_application(
         application_name=application_name, project_name=project_name
     )
@@ -81,14 +79,13 @@ async def delete_application(
 @router.patch("/{project_name}/{application_name}/restart")
 @inject
 async def restart_application(
-    project_name: str,
-    application_name: str,
-    user_id: CURRENT_USER_ID_DEPENDENCY,
-    cluster_manager_service: ClusterManagerService = Depends(
-        Provide[ApplicationContainer.services.cluster_manager]
-    ),
+        project_name: str,
+        application_name: str,
+        permitted=Depends(CheckUserPermissions(action=ActionEnum.REBOOT.name)),
+        cluster_manager_service: ClusterManagerService = Depends(
+            Provide[ApplicationContainer.services.cluster_manager]
+        ),
 ):
-    # TODO assure that user has permissions (by auth service)
     await cluster_manager_service.restart_application(
         application_name=application_name, project_name=project_name
     )
