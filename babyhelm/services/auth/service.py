@@ -3,12 +3,12 @@ from typing import TYPE_CHECKING
 
 import bcrypt
 import jwt
-from sqlalchemy.orm import selectinload
 
 from babyhelm.exceptions.auth import (
     InvalidCredentialsError,
+    InvalidPermissions,
     InvalidTokenError,
-    TokenExpiredError, InvalidPermissions,
+    TokenExpiredError,
 )
 from babyhelm.exceptions.cluster_manager import ProjectNotFound
 from babyhelm.models import User
@@ -23,13 +23,13 @@ if TYPE_CHECKING:
 
 class AuthService:
     def __init__(
-            self,
-            secret_key: str,
-            access_token_expiration: int,
-            refresh_token_expiration: int,
-            user_service: "UserService",
-            project_repository: ProjectRepository,
-            algorithm: str = "HS256",
+        self,
+        secret_key: str,
+        access_token_expiration: int,
+        refresh_token_expiration: int,
+        user_service: "UserService",
+        project_repository: ProjectRepository,
+        algorithm: str = "HS256",
     ):
         self.secret_key = secret_key
         self.algorithm = algorithm
@@ -107,10 +107,17 @@ class AuthService:
         except (TokenExpiredError, InvalidTokenError):
             raise
 
-    async def validate_permissions(self, user_id: int, action: str, project_name: str = None,
-                                   application_name: str = None):
+    async def validate_permissions(
+        self,
+        user_id: int,
+        action: str,
+        project_name: str = None,
+        application_name: str = None,
+    ):
         role = await self.project_repository.get_user_role(project_name, user_id)
         if role is None:
             raise ProjectNotFound()
         if action not in role_permission_dict[role]:
-            raise InvalidPermissions(detail="You do not have enough permissions to perform this action.")
+            raise InvalidPermissions(
+                detail="You do not have enough permissions to perform this action."
+            )

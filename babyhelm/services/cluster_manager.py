@@ -35,13 +35,13 @@ class ClusterManagerService:
     FORBIDDEN_NAMES = ["default", "kube-system", "kube-public", "kube-node-lease"]
 
     def __init__(
-            self,
-            project_repository: ProjectRepository,
-            application_repository: ApplicationRepository,
-            user_repository: UserRepository,
-            manifest_builder: ManifestBuilderService,
-            kubeconfig_path: str,
-            host_postfix: str,
+        self,
+        project_repository: ProjectRepository,
+        application_repository: ApplicationRepository,
+        user_repository: UserRepository,
+        manifest_builder: ManifestBuilderService,
+        kubeconfig_path: str,
+        host_postfix: str,
     ):
         self.host_postfix = host_postfix
         self.project_repository = project_repository
@@ -78,12 +78,15 @@ class ClusterManagerService:
         except SQLAlchemyError as e:
             raise DatabaseError(project.name) from e
         except utils.FailToCreateError as e:
-            project = await self.project_repository.get(ProjectModel.name == project.name)
+            project = await self.project_repository.get(
+                ProjectModel.name == project.name
+            )
             await self.project_repository.delete(project)
+            print(e)
             raise ClusterError(project.name) from e
 
     async def create_application(
-            self, app: CreateApplicationRequest, project_name: str
+        self, app: CreateApplicationRequest, project_name: str
     ) -> ApplicationWithLinkSchema:
         application = app.application
         manifests = self.manifest_builder.render_application(application=application)
@@ -179,7 +182,7 @@ class ClusterManagerService:
         await self.application_repository.delete(application=application)
 
     async def get_application(
-            self, project_name: str, application_name: str
+        self, project_name: str, application_name: str
     ) -> ApplicationSchema:
         application = await self.application_repository.get(
             project_name, application_name
@@ -219,4 +222,12 @@ class ClusterManagerService:
                     }
                 }
             },
+        )
+
+    async def add_new_user(self, user_email: str, project_name: str, role: str):
+        user = await self.user_repository.get(UserModel.email == user_email)
+        if user is None:
+            raise UserNotFoundError
+        await self.project_repository.add_new_user(
+            project_name=project_name, user_id=user.id, role=role
         )

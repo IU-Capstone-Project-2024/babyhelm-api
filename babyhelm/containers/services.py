@@ -5,7 +5,8 @@ from dependency_injector.providers import (
     Configuration,
     DependenciesContainer,
     Factory,
-    Provider, Singleton,
+    Provider,
+    Singleton,
 )
 
 from babyhelm.containers.gateways import GatewaysContainer

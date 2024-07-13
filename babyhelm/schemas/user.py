@@ -2,6 +2,8 @@ import datetime
 
 from pydantic import BaseModel, ConfigDict, EmailStr
 
+from babyhelm.services.auth.utils import RoleEnum
+
 USER_EXAMPLE = {
     "id": 1,
     "email": "string@gmail.com",
@@ -30,3 +32,8 @@ class UserSchema(BaseModel):
 
     id: int
     email: EmailStr
+
+
+class AddUserToProjectRequestSchema(BaseModel):
+    email: EmailStr
+    role: RoleEnum

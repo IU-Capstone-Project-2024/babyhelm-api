@@ -8,6 +8,7 @@ class RoleEnum(Enum):
 
 
 class ActionEnum(Enum):
+    CREATE = "create"
     READ = "read"
     UPDATE = "update"
     DELETE = "delete"
@@ -17,6 +18,7 @@ class ActionEnum(Enum):
 
 role_permission_dict = {
     "creator": (
+        ActionEnum.CREATE.name,
         ActionEnum.READ.name,
         ActionEnum.UPDATE.name,
         ActionEnum.DELETE.name,
