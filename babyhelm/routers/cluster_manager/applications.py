@@ -80,7 +80,7 @@ async def delete_application(
 async def restart_application(
     project_name: str,
     application_name: str,
-    permitted=Depends(CheckUserPermissions(action=ActionEnum.REBOOT.name)),
+    permitted=Depends(CheckUserPermissions(action=ActionEnum.RESTART.name)),
     cluster_manager_service: ClusterManagerService = Depends(
         Provide[ApplicationContainer.services.cluster_manager]
     ),

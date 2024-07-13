@@ -16,6 +16,7 @@ from babyhelm.exceptions.cluster_manager import (
     ProjectNameAlreadyTaken,
     ProjectNotFound,
 )
+from babyhelm.exceptions.http import BadRequestError
 from babyhelm.models.project import Project as ProjectModel
 from babyhelm.models.user import User as UserModel
 from babyhelm.repositories.application import ApplicationRepository
@@ -28,6 +29,7 @@ from babyhelm.schemas.cluster_manager import (
     ProjectSchema,
 )
 from babyhelm.schemas.manifest_builder import Project
+from babyhelm.services.auth.utils import RoleEnum
 from babyhelm.services.manifest_builder import ManifestBuilderService
 
 
@@ -230,4 +232,18 @@ class ClusterManagerService:
             raise UserNotFoundError
         await self.project_repository.add_new_user(
             project_name=project_name, user_id=user.id, role=role
+        )
+
+    async def delete_user(self, user_email: str, project_name: str):
+        user = await self.user_repository.get(UserModel.email == user_email)
+        if user is None:
+            raise UserNotFoundError
+        user_role = await self.project_repository.get_user_role(
+            project_name=project_name, user_id=user.id
+        )
+        if user_role == RoleEnum.creator.name:
+            raise BadRequestError(detail="User with role creator cannot be deleted.")
+
+        await self.project_repository.delete_user(
+            project_name=project_name, user_id=user.id
         )

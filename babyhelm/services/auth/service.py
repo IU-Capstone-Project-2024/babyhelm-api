@@ -112,7 +112,6 @@ class AuthService:
         user_id: int,
         action: str,
         project_name: str = None,
-        application_name: str = None,
     ):
         role = await self.project_repository.get_user_role(project_name, user_id)
         if role is None:

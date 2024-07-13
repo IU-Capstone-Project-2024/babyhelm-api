@@ -37,3 +37,7 @@ class UserSchema(BaseModel):
 class AddUserToProjectRequestSchema(BaseModel):
     email: EmailStr
     role: RoleEnum
+
+
+class DeleteUserFromProjectRequestSchema(BaseModel):
+    email: EmailStr

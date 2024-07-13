@@ -12,7 +12,7 @@ class ActionEnum(Enum):
     READ = "read"
     UPDATE = "update"
     DELETE = "delete"
-    REBOOT = "reboot"
+    RESTART = "restart"
     ADD_NEW_USER = "add_new_user"
 
 
@@ -22,9 +22,9 @@ role_permission_dict = {
         ActionEnum.READ.name,
         ActionEnum.UPDATE.name,
         ActionEnum.DELETE.name,
-        ActionEnum.REBOOT.name,
+        ActionEnum.RESTART.name,
         ActionEnum.ADD_NEW_USER.name,
     ),
-    "editor": (ActionEnum.READ.name, ActionEnum.UPDATE.name, ActionEnum.REBOOT.name),
+    "editor": (ActionEnum.READ.name, ActionEnum.UPDATE.name, ActionEnum.RESTART.name),
     "viewer": (ActionEnum.READ.name,),
 }

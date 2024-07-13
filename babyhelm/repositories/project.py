@@ -1,6 +1,7 @@
 from typing import Tuple
 
 import sqlalchemy as sa
+from sqlalchemy import and_
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -76,8 +77,10 @@ class ProjectRepository:
     ) -> str | None:
         async with self.db.session(session) as session_:
             stmt = sa.select(UsersProjects).where(
-                (UsersProjects.c.project_name == project_name)
-                & (UsersProjects.c.user_id == user_id)
+                and_(
+                    UsersProjects.c.project_name == project_name,
+                    UsersProjects.c.user_id == user_id,
+                )
             )
             execute_result = await session_.execute(stmt)
             user_project = execute_result.fetchone()
@@ -103,6 +106,19 @@ class ProjectRepository:
                     UsersProjects.c.project_name: stmt.excluded.project_name,
                     UsersProjects.c.role: stmt.excluded.role,
                 },
+            )
+            await session_.execute(stmt)
+            await session_.commit()
+
+    async def delete_user(
+        self, user_id: int, project_name: str, session: AsyncSession | None = None
+    ) -> None:
+        async with self.db.session(session) as session_:
+            stmt = UsersProjects.delete().where(
+                and_(
+                    UsersProjects.c.user_id == user_id,
+                    UsersProjects.c.project_name == project_name,
+                )
             )
             await session_.execute(stmt)
             await session_.commit()
