@@ -15,5 +15,14 @@ class ActionEnum(Enum):
     ADD_NEW_USER = "add_new_user"
 
 
-class RolePermissionsEnum(Enum):
-    ...
+role_permission_dict = {
+    "creator": (
+        ActionEnum.READ.name,
+        ActionEnum.UPDATE.name,
+        ActionEnum.DELETE.name,
+        ActionEnum.REBOOT.name,
+        ActionEnum.ADD_NEW_USER.name,
+    ),
+    "editor": (ActionEnum.READ.name, ActionEnum.UPDATE.name, ActionEnum.REBOOT.name),
+    "viewer": (ActionEnum.READ.name,),
+}

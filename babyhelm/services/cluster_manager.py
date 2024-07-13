@@ -35,13 +35,13 @@ class ClusterManagerService:
     FORBIDDEN_NAMES = ["default", "kube-system", "kube-public", "kube-node-lease"]
 
     def __init__(
-        self,
-        project_repository: ProjectRepository,
-        application_repository: ApplicationRepository,
-        user_repository: UserRepository,
-        manifest_builder: ManifestBuilderService,
-        kubeconfig_path: str,
-        host_postfix: str,
+            self,
+            project_repository: ProjectRepository,
+            application_repository: ApplicationRepository,
+            user_repository: UserRepository,
+            manifest_builder: ManifestBuilderService,
+            kubeconfig_path: str,
+            host_postfix: str,
     ):
         self.host_postfix = host_postfix
         self.project_repository = project_repository
@@ -78,12 +78,12 @@ class ClusterManagerService:
         except SQLAlchemyError as e:
             raise DatabaseError(project.name) from e
         except utils.FailToCreateError as e:
-            project = await self.project_repository.get(name=project.name)
+            project = await self.project_repository.get(ProjectModel.name == project.name)
             await self.project_repository.delete(project)
             raise ClusterError(project.name) from e
 
     async def create_application(
-        self, app: CreateApplicationRequest, project_name: str
+            self, app: CreateApplicationRequest, project_name: str
     ) -> ApplicationWithLinkSchema:
         application = app.application
         manifests = self.manifest_builder.render_application(application=application)
@@ -132,7 +132,8 @@ class ClusterManagerService:
         if project_name in self.FORBIDDEN_NAMES:
             raise ForbiddenProjectName(project_name)
         project = await self.project_repository.get(
-            name=project_name, options=(selectinload(ProjectModel.applications),)
+            ProjectModel.name == project_name,
+            options=(selectinload(ProjectModel.applications),),
         )
         if project is None:
             raise ProjectNotFound
@@ -144,7 +145,7 @@ class ClusterManagerService:
 
     async def get_project(self, project_name: str) -> ProjectSchema:
         project_model = await self.project_repository.get(
-            name=project_name,
+            ProjectModel.name == project_name,
             options=(
                 selectinload(ProjectModel.users),
                 selectinload(ProjectModel.applications),
@@ -152,7 +153,7 @@ class ClusterManagerService:
         )
         if project_model is None:
             raise ProjectNotFound
-        return ProjectSchema.from_orm(project_model)
+        return ProjectSchema.model_validate(project_model)
 
     async def delete_application(self, project_name: str, application_name: str):
         application = await self.application_repository.get(
@@ -178,7 +179,7 @@ class ClusterManagerService:
         await self.application_repository.delete(application=application)
 
     async def get_application(
-        self, project_name: str, application_name: str
+            self, project_name: str, application_name: str
     ) -> ApplicationSchema:
         application = await self.application_repository.get(
             project_name, application_name
@@ -188,7 +189,7 @@ class ClusterManagerService:
         return ApplicationSchema.from_orm(application)
 
     async def list_applications(self, project_name: str) -> list[ApplicationSchema]:
-        project = await self.project_repository.get(name=project_name)
+        project = await self.project_repository.get(ProjectModel.name == project_name)
         if project is None:
             raise ProjectNotFound
         applications = await self.application_repository.list(project_name=project_name)

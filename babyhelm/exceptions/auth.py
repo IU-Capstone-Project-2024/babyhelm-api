@@ -36,3 +36,8 @@ class UserNotFoundError(HttpError):
 
     status_code = fastapi.status.HTTP_400_BAD_REQUEST
     detail = "User not found"
+
+
+class InvalidPermissions(HttpError):
+    status_code = fastapi.status.HTTP_403_FORBIDDEN
+    detail = "No permissions"

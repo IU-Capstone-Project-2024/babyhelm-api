@@ -3,16 +3,19 @@ from typing import TYPE_CHECKING
 
 import bcrypt
 import jwt
+from sqlalchemy.orm import selectinload
 
 from babyhelm.exceptions.auth import (
     InvalidCredentialsError,
     InvalidTokenError,
-    TokenExpiredError,
+    TokenExpiredError, InvalidPermissions,
 )
-from babyhelm.models import User
+from babyhelm.exceptions.base import NotFoundError
+from babyhelm.models import Project as ProjectModel, User
+from babyhelm.repositories.project import ProjectRepository
 from babyhelm.schemas.auth import TokenEnum, TokenSchema
 from babyhelm.schemas.user import ResponseUserSchema
-from babyhelm.services.auth.utils import ActionEnum
+from babyhelm.services.auth.utils import role_permission_dict
 
 if TYPE_CHECKING:
     from babyhelm.services.user import UserService
@@ -20,12 +23,13 @@ if TYPE_CHECKING:
 
 class AuthService:
     def __init__(
-        self,
-        secret_key: str,
-        access_token_expiration: int,
-        refresh_token_expiration: int,
-        user_service: "UserService",
-        algorithm: str = "HS256",
+            self,
+            secret_key: str,
+            access_token_expiration: int,
+            refresh_token_expiration: int,
+            user_service: "UserService",
+            project_repository: ProjectRepository,
+            algorithm: str = "HS256",
     ):
         self.secret_key = secret_key
         self.algorithm = algorithm
@@ -33,6 +37,7 @@ class AuthService:
         self.refresh_token_expiration = refresh_token_expiration
 
         self.user_service = user_service
+        self.project_repository = project_repository
 
     @staticmethod
     def hash_password(password: str) -> str:
@@ -102,7 +107,9 @@ class AuthService:
         except (TokenExpiredError, InvalidTokenError):
             raise
 
-    async def validate_permissions(
-        self, project_name: str, user_id: int, movement: ActionEnum
-    ) -> bool:
-        ...
+    async def validate_permissions(self, project_name: str, user_id: int, action: str):
+        role = await self.project_repository.get_user_role(project_name, user_id)
+        if role is None:
+            raise NotFoundError(detail="Project for this user not found")
+        if action not in role_permission_dict[role]:
+            raise InvalidPermissions(detail="You do not have enough permissions to perform this action.")
