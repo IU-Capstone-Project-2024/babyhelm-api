@@ -32,6 +32,9 @@ def upgrade() -> None:
         ),
     )
 
+    op.execute("UPDATE users_projects SET role = 'creator' WHERE role IS NULL")
+    op.alter_column("users_projects", "role", nullable=False)
+
 
 def downgrade() -> None:
     op.drop_column("users_projects", "role")
