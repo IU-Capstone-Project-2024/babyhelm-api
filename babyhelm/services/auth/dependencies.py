@@ -1,7 +1,7 @@
 from typing import Annotated
 
-import fastapi
 from dependency_injector.wiring import Provide, inject
+from fastapi import Depends
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from babyhelm.containers.application import ApplicationContainer
@@ -17,9 +17,9 @@ bearer_scheme = HTTPBearer(
 
 
 @inject
-async def get_current_user_id(
-    bearer: HTTPAuthorizationCredentials | None = fastapi.Depends(bearer_scheme),
-    auth_service: AuthService = fastapi.Depends(
+def get_current_user_id(
+    bearer: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
+    auth_service: AuthService = Depends(
         Provide[ApplicationContainer.services.auth],
     ),
 ) -> int:
@@ -30,4 +30,25 @@ async def get_current_user_id(
     return decoded_token["sub"]
 
 
-CURRENT_USER_ID_DEPENDENCY = Annotated[int, fastapi.Depends(get_current_user_id)]
+CURRENT_USER_ID_DEPENDENCY = Annotated[int, Depends(get_current_user_id)]
+
+
+class CheckUserPermissions:
+    def __init__(
+        self,
+        action: str,
+    ):
+        self.action = action
+
+    @inject
+    async def __call__(
+        self,
+        user_id: CURRENT_USER_ID_DEPENDENCY,
+        project_name: str = None,
+        auth_service: AuthService = Depends(
+            Provide[ApplicationContainer.services.auth]
+        ),
+    ):
+        await auth_service.validate_permissions(
+            project_name=project_name, user_id=user_id, action=self.action
+        )
