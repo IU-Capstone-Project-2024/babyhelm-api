@@ -164,3 +164,5 @@ local/
 junit.xml
 
 *.db
+
+.DS_Store

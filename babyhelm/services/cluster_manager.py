@@ -16,6 +16,7 @@ from babyhelm.exceptions.cluster_manager import (
     ProjectNameAlreadyTaken,
     ProjectNotFound,
 )
+from babyhelm.exceptions.http import BadRequestError
 from babyhelm.models.project import Project as ProjectModel
 from babyhelm.models.user import User as UserModel
 from babyhelm.repositories.application import ApplicationRepository
@@ -28,6 +29,7 @@ from babyhelm.schemas.cluster_manager import (
     ProjectSchema,
 )
 from babyhelm.schemas.manifest_builder import Project
+from babyhelm.services.auth.utils import RoleEnum
 from babyhelm.services.manifest_builder import ManifestBuilderService
 
 
@@ -78,8 +80,11 @@ class ClusterManagerService:
         except SQLAlchemyError as e:
             raise DatabaseError(project.name) from e
         except utils.FailToCreateError as e:
-            project = await self.project_repository.get(name=project.name)
+            project = await self.project_repository.get(
+                ProjectModel.name == project.name
+            )
             await self.project_repository.delete(project)
+            print(e)
             raise ClusterError(project.name) from e
 
     async def create_application(
@@ -132,7 +137,8 @@ class ClusterManagerService:
         if project_name in self.FORBIDDEN_NAMES:
             raise ForbiddenProjectName(project_name)
         project = await self.project_repository.get(
-            name=project_name, options=(selectinload(ProjectModel.applications),)
+            ProjectModel.name == project_name,
+            options=(selectinload(ProjectModel.applications),),
         )
         if project is None:
             raise ProjectNotFound
@@ -144,7 +150,7 @@ class ClusterManagerService:
 
     async def get_project(self, project_name: str) -> ProjectSchema:
         project_model = await self.project_repository.get(
-            name=project_name,
+            ProjectModel.name == project_name,
             options=(
                 selectinload(ProjectModel.users),
                 selectinload(ProjectModel.applications),
@@ -152,7 +158,7 @@ class ClusterManagerService:
         )
         if project_model is None:
             raise ProjectNotFound
-        return ProjectSchema.from_orm(project_model)
+        return ProjectSchema.model_validate(project_model)
 
     async def delete_application(self, project_name: str, application_name: str):
         application = await self.application_repository.get(
@@ -188,7 +194,7 @@ class ClusterManagerService:
         return ApplicationSchema.from_orm(application)
 
     async def list_applications(self, project_name: str) -> list[ApplicationSchema]:
-        project = await self.project_repository.get(name=project_name)
+        project = await self.project_repository.get(ProjectModel.name == project_name)
         if project is None:
             raise ProjectNotFound
         applications = await self.application_repository.list(project_name=project_name)
@@ -218,6 +224,28 @@ class ClusterManagerService:
                     }
                 }
             },
+        )
+
+    async def add_new_user_to_the_project(self, user_email: str, project_name: str, role: str):
+        user = await self.user_repository.get(UserModel.email == user_email)
+        if user is None:
+            raise UserNotFoundError
+        await self.project_repository.add_new_user(
+            project_name=project_name, user_id=user.id, role=role
+        )
+
+    async def delete_user_from_the_project(self, user_email: str, project_name: str):
+        user = await self.user_repository.get(UserModel.email == user_email)
+        if user is None:
+            raise UserNotFoundError
+        user_role = await self.project_repository.get_user_role(
+            project_name=project_name, user_id=user.id
+        )
+        if user_role == RoleEnum.creator.name:
+            raise BadRequestError(detail="User with role creator cannot be deleted.")
+
+        await self.project_repository.delete_user(
+            project_name=project_name, user_id=user.id
         )
 
     async def get_application_logs(
