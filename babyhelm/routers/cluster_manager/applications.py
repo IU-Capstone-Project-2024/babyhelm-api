@@ -99,8 +99,7 @@ async def get_logs(
     cluster_manager_service: ClusterManagerService = Depends(
         Provide[ApplicationContainer.services.cluster_manager]
     ),
-) -> dict:
-    # TODO assure that user has permissions (by auth service)
+) -> ApplicationLogsSchema:
     return await cluster_manager_service.get_application_logs(
         project_name, application_name
     )
