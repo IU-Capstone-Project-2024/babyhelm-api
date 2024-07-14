@@ -226,7 +226,7 @@ class ClusterManagerService:
             },
         )
 
-    async def add_new_user(self, user_email: str, project_name: str, role: str):
+    async def add_new_user_to_the_project(self, user_email: str, project_name: str, role: str):
         user = await self.user_repository.get(UserModel.email == user_email)
         if user is None:
             raise UserNotFoundError
@@ -234,7 +234,7 @@ class ClusterManagerService:
             project_name=project_name, user_id=user.id, role=role
         )
 
-    async def delete_user(self, user_email: str, project_name: str):
+    async def delete_user_from_the_project(self, user_email: str, project_name: str):
         user = await self.user_repository.get(UserModel.email == user_email)
         if user is None:
             raise UserNotFoundError

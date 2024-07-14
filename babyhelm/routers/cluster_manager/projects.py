@@ -77,14 +77,14 @@ async def add_user_to_the_project(
     ),
 ) -> None:
     """Add new registered user to a project or update role of already joined to a project."""
-    return await cluster_manager_service.add_new_user(
+    return await cluster_manager_service.add_new_user_to_the_project(
         user_email=request.email, project_name=project_name, role=request.role.name
     )
 
 
 @router.delete("/{project-name}/delete_user", status_code=status.HTTP_200_OK)
 @inject
-async def delete_user_from_the_project(
+async def delete_user(
     project_name: str,
     request: DeleteUserFromProjectRequestSchema,
     permitted=Depends(CheckUserPermissions(action=ActionEnum.DELETE.name)),
@@ -93,6 +93,6 @@ async def delete_user_from_the_project(
     ),
 ) -> None:
     """Delete user from the project."""
-    return await cluster_manager_service.delete_user(
+    return await cluster_manager_service.delete_user_from_the_project(
         user_email=request.email, project_name=project_name
     )
