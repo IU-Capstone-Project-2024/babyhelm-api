@@ -23,6 +23,7 @@ from babyhelm.repositories.application import ApplicationRepository
 from babyhelm.repositories.project import ProjectRepository
 from babyhelm.repositories.user import UserRepository
 from babyhelm.schemas.cluster_manager import (
+    ApplicationLogsSchema,
     ApplicationSchema,
     ApplicationWithLinkSchema,
     CreateApplicationRequest,
@@ -252,7 +253,7 @@ class ClusterManagerService:
 
     async def get_application_logs(
         self, project_name: str, application_name: str
-    ) -> dict:
+    ) -> ApplicationLogsSchema:
         application = await self.application_repository.get(
             project_name, application_name
         )
@@ -280,4 +281,4 @@ class ClusterManagerService:
                 name=pod_name, namespace=project_name, since_seconds=60 * 5
             )
             res[pod_name] = log.split("\n")
-        return res
+        return ApplicationLogsSchema(root=res)

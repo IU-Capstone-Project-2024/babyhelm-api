@@ -1,6 +1,6 @@
 from copy import deepcopy
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, RootModel
 
 from babyhelm.schemas.manifest_builder import Application
 from babyhelm.schemas.user import USER_EXAMPLE, UserSchema
@@ -14,6 +14,11 @@ PROJECT_EXAMPLE = {
     "name": "some-project",
     "applications": [APPLICATION_EXAMPLE],
     "users": [USER_EXAMPLE],
+}
+
+APPLICATION_LOGS_EXAMPLE = {
+    "pod-1": ["log-line-1", "log-line-2"],
+    "pod-2": ["log-line-1", "log-line-2"],
 }
 
 
@@ -47,3 +52,11 @@ class ApplicationWithLinkSchema(ApplicationSchema):
     )
 
     deployment_link: str
+
+
+class ApplicationLogsSchema(RootModel):
+    model_config = ConfigDict(
+        from_attributes=True, json_schema_extra={"examples": [APPLICATION_LOGS_EXAMPLE]}
+    )
+
+    root: dict[str, list[str]]

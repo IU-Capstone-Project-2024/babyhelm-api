@@ -3,6 +3,7 @@ from fastapi import APIRouter, Depends, status
 
 from babyhelm.containers.application import ApplicationContainer
 from babyhelm.schemas.cluster_manager import (
+    ApplicationLogsSchema,
     ApplicationSchema,
     ApplicationWithLinkSchema,
     CreateApplicationRequest,

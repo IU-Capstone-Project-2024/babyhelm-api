@@ -7,6 +7,7 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from babyhelm.exceptions.cluster_manager import ClusterError, DatabaseError
 from babyhelm.schemas.cluster_manager import (
+    ApplicationLogsSchema,
     ApplicationWithLinkSchema,
     CreateApplicationRequest,
     ProjectSchema,
@@ -226,11 +227,11 @@ class TestClusterManagerService:
                 logs = await cluster_manager_service.get_application_logs(
                     sample_application_model.project_name, sample_application_model.name
                 )
-
+        assert isinstance(logs, ApplicationLogsSchema)
         assert {
             "pod-1": ["log-1-of-pod-1", "log-2-of-pod-1"],
             "pod-2": ["log-1-of-pod-2", "log-2-of-pod-2"],
-        } == logs
+        } == logs.model_dump()
         apps_v1_api_mock.read_namespaced_deployment.assert_called_once_with(
             name=sample_application_model.deployment_name,
             namespace=sample_application_model.project_name,
