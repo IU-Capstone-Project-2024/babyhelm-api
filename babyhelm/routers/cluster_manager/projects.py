@@ -54,7 +54,7 @@ async def list_projects(
     return await cluster_manager_service.list_projects(user_id)
 
 
-@router.get("/{project-name}", status_code=status.HTTP_200_OK)
+@router.get("/{project_name}", status_code=status.HTTP_200_OK)
 @inject
 async def get_project(
     project_name: str,
@@ -66,7 +66,7 @@ async def get_project(
     return await cluster_manager_service.get_project(project_name)
 
 
-@router.post("/{project-name}/add_user", status_code=status.HTTP_200_OK)
+@router.post("/{project_name}/add_user", status_code=status.HTTP_200_OK)
 @inject
 async def add_user_to_the_project(
     project_name: str,
@@ -82,7 +82,7 @@ async def add_user_to_the_project(
     )
 
 
-@router.delete("/{project-name}/delete_user", status_code=status.HTTP_200_OK)
+@router.delete("/{project_name}/delete_user", status_code=status.HTTP_200_OK)
 @inject
 async def delete_user(
     project_name: str,
