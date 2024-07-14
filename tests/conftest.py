@@ -1,5 +1,6 @@
 import os
 from unittest import mock
+from unittest.mock import AsyncMock
 
 import pytest
 from fastapi.testclient import TestClient
@@ -9,10 +10,16 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from babyhelm.app import create_app
 from babyhelm.containers.application import ApplicationContainer
 from babyhelm.gateways.database import Database
+from babyhelm.models import Application as ApplicationModel
 from babyhelm.models import Base
+from babyhelm.models import Project as ProjectModel
 from babyhelm.models import User as UserModel
+from babyhelm.repositories.application import ApplicationRepository
+from babyhelm.repositories.project import ProjectRepository
+from babyhelm.repositories.user import UserRepository
 from babyhelm.schemas.manifest_builder import Application, Project
 from babyhelm.schemas.user import UserSchema
+from babyhelm.services.user import UserService
 
 CONFIG_FILE = "config/config.test.yaml"
 MOCK_DB_URL = "sqlite+aiosqlite:///test.db"
@@ -152,17 +159,17 @@ def render_application_results() -> dict:
 
 
 @pytest.fixture()
-def namespace_values_as_dict() -> dict:
+def project_values_as_dict() -> dict:
     return {"name": "MyPerfectApp"}
 
 
 @pytest.fixture()
-def namespace_values(namespace_values_as_dict) -> Project:
-    return Project.model_validate(namespace_values_as_dict)
+def project_values(project_values_as_dict) -> Project:
+    return Project.model_validate(project_values_as_dict)
 
 
 @pytest.fixture()
-def render_namespace_results():
+def render_project_results():
     return {
         "apiVersion": "v1",
         "kind": "Namespace",
@@ -178,3 +185,49 @@ def sample_user():
 @pytest.fixture()
 def sample_user_model(sample_user):
     return UserModel(id=sample_user.id, email=sample_user.email, projects=[])
+
+
+@pytest.fixture()
+def sample_application_model(application_values_as_dict, project_values_as_dict):
+    return ApplicationModel(
+        name=application_values_as_dict["name"],
+        project_name=project_values_as_dict["name"],
+        image=application_values_as_dict["image"],
+        deployment_name=application_values_as_dict["name"] + "-deployment",
+        service_name=application_values_as_dict["name"] + "-service",
+        autoscaler_name=application_values_as_dict["name"] + "-autoscaler",
+    )
+
+
+@pytest.fixture()
+def sample_project_model(project_values_as_dict, sample_user_model):
+    return ProjectModel(name=project_values_as_dict["name"])
+
+
+@pytest.fixture()
+def project_repository(sample_project_model):
+    project_repo = AsyncMock(spec=ProjectRepository)
+    project_repo.get.return_value = sample_project_model
+
+    return project_repo
+
+
+@pytest.fixture()
+def application_repository(sample_application_model):
+    app_repo = AsyncMock(spec=ApplicationRepository)
+    app_repo.get.return_value = sample_application_model
+
+    return app_repo
+
+
+@pytest.fixture()
+def user_repository(sample_user_model):
+    user_repo = AsyncMock(spec=UserRepository)
+    user_repo.get.return_value = sample_user_model
+
+    return user_repo
+
+
+@pytest.fixture()
+def user_service():
+    return AsyncMock(spec=UserService)

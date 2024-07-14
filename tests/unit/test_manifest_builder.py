@@ -77,8 +77,8 @@ class TestManifestBuilder:
     def test_render_namespace_manifest(
         self,
         builder: ManifestBuilderService,
-        namespace_values: Project,
-        render_namespace_results: dict,
+        project_values: Project,
+        render_project_results: dict,
     ):
-        namespace_manifest = builder.render_namespace(namespace_values)
-        assert namespace_manifest.namespace == render_namespace_results
+        namespace_manifest = builder.render_namespace(project_values)
+        assert namespace_manifest.namespace == render_project_results

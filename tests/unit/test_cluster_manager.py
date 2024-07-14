@@ -1,29 +1,19 @@
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import MagicMock, patch
 
 import pytest
+from kubernetes import client
 from kubernetes.utils import FailToCreateError
 from sqlalchemy.exc import SQLAlchemyError
 
 from babyhelm.exceptions.cluster_manager import ClusterError, DatabaseError
-from babyhelm.repositories.application import ApplicationRepository
-from babyhelm.repositories.project import ProjectRepository
-from babyhelm.repositories.user import UserRepository
 from babyhelm.schemas.cluster_manager import (
     ApplicationWithLinkSchema,
     CreateApplicationRequest,
     ProjectSchema,
 )
-from babyhelm.schemas.manifest_builder import (
-    Application,
-    ApplicationManifests,
-    Env,
-    NamespaceManifest,
-    Ports,
-    Project,
-)
+from babyhelm.schemas.manifest_builder import ApplicationManifests, NamespaceManifest
 from babyhelm.services.cluster_manager import ClusterManagerService
 from babyhelm.services.manifest_builder import ManifestBuilderService
-from babyhelm.services.user import UserService
 
 
 class MockAPIException:
@@ -32,40 +22,10 @@ class MockAPIException:
 
 
 @pytest.fixture()
-def sample_project_schema(sample_user, sample_project):
-    return ProjectSchema(
-        name=sample_project.name,
-        applications=[],
-        users=[sample_user],
-    )
-
-
-@pytest.fixture()
-def project_repository(sample_project_schema):
-    project_repo = AsyncMock(spec=ProjectRepository)
-    project_repo.get.return_value = sample_project_schema
-
-    return project_repo
-
-
-@pytest.fixture()
-def application_repository(sample_application):
-    app_repo = AsyncMock(spec=ApplicationRepository)
-    app_repo.get.return_value = sample_application
-
-    return app_repo
-
-
-@pytest.fixture()
-def user_service():
-    return AsyncMock(spec=UserService)
-
-
-@pytest.fixture()
-def manifest_builder(render_application_results, render_namespace_results):
+def manifest_builder_service(render_application_results, render_project_results):
     builder = MagicMock(spec=ManifestBuilderService)
     builder.render_namespace.return_value = NamespaceManifest(
-        namespace=render_namespace_results
+        namespace=render_project_results
     )
     builder.render_application.return_value = ApplicationManifests(
         **render_application_results
@@ -87,18 +47,10 @@ def host_postfix():
 
 
 @pytest.fixture()
-def user_repository(sample_user_model):
-    user_repo = AsyncMock(spec=UserRepository)
-    user_repo.get.return_value = sample_user_model
-
-    return user_repo
-
-
-@pytest.fixture()
 def cluster_manager_service(
     project_repository,
     application_repository,
-    manifest_builder,
+    manifest_builder_service,
     kubeconfig_path,
     host_postfix,
     user_repository,
@@ -108,31 +60,16 @@ def cluster_manager_service(
         return ClusterManagerService(
             project_repository=project_repository,
             application_repository=application_repository,
-            manifest_builder=manifest_builder,
+            manifest_builder=manifest_builder_service,
             user_repository=user_repository,
             kubeconfig_path=kubeconfig_path,
             host_postfix=host_postfix,
         )
 
 
-# Sample objects for testing
 @pytest.fixture()
-def sample_project():
-    return Project(name="sampleProject")
-
-
-@pytest.fixture()
-def sample_application():
-    ports = Ports(port=80, targetPort=80)
-    envs = [Env(name="config_path", value="Users/admin/config/path")]
-    return Application(name="sample_app", image="sample_image", ports=ports, envs=envs)
-
-
-@pytest.fixture()
-def create_application_request(sample_project, sample_application):
-    return CreateApplicationRequest(
-        project=sample_project, application=sample_application
-    )
+def create_application_request(application_values):
+    return CreateApplicationRequest(application=application_values)
 
 
 class TestClusterManagerService:
@@ -144,80 +81,80 @@ class TestClusterManagerService:
     async def test_create_project_success(
         self,
         cluster_manager_service,
-        sample_project,
         project_repository,
-        manifest_builder,
+        manifest_builder_service,
+        project_values,
         sample_user,
         sample_user_model,
     ):
         response = await cluster_manager_service.create_project(
-            sample_project, sample_user.id
+            project_values, sample_user.id
         )
         assert isinstance(response, ProjectSchema)
         project_repository.create.assert_called_once_with(
-            name=sample_project.name, user=sample_user_model
+            name=project_values.name, user=sample_user_model
         )
-        manifest_builder.render_namespace.assert_called_once_with(
-            project=sample_project
+        manifest_builder_service.render_namespace.assert_called_once_with(
+            project=project_values
         )
 
     @pytest.mark.asyncio()
     async def test_create_project_database_error(
         self,
         cluster_manager_service,
-        sample_project,
         project_repository,
+        project_values,
         sample_user,
         sample_user_model,
     ):
         project_repository.create.side_effect = SQLAlchemyError
         with pytest.raises(DatabaseError):
-            await cluster_manager_service.create_project(sample_project, sample_user.id)
+            await cluster_manager_service.create_project(project_values, sample_user.id)
         project_repository.create.assert_called_once_with(
-            name=sample_project.name, user=sample_user_model
+            name=project_values.name, user=sample_user_model
         )
 
     @pytest.mark.asyncio()
     async def test_create_project_cluster_error(
         self,
         cluster_manager_service,
-        sample_project,
+        manifest_builder_service,
         project_repository,
-        manifest_builder,
+        project_values,
         sample_user,
-        sample_project_schema,
+        sample_project_model,
         sample_user_model,
     ):
         with patch("kubernetes.utils.create_from_dict") as mock_create_from_dict:
             mock_create_from_dict.side_effect = FailToCreateError([MockAPIException()])
             with pytest.raises(ClusterError):
                 await cluster_manager_service.create_project(
-                    sample_project, sample_user.id
+                    project_values, sample_user.id
                 )
             project_repository.create.assert_called_once_with(
-                name=sample_project.name, user=sample_user_model
+                name=project_values.name, user=sample_user_model
             )
-            project_repository.delete.assert_called_once_with(sample_project_schema)
-            manifest_builder.render_namespace.assert_called_once_with(
-                project=sample_project
+            project_repository.delete.assert_called_once_with(sample_project_model)
+            manifest_builder_service.render_namespace.assert_called_once_with(
+                project=project_values
             )
 
     @pytest.mark.asyncio()
     async def test_create_application_success(
         self,
         cluster_manager_service,
-        create_application_request,
+        manifest_builder_service,
         application_repository,
-        manifest_builder,
-        sample_project,
+        create_application_request,
+        project_values,
     ):
         response = await cluster_manager_service.create_application(
-            create_application_request, sample_project.name
+            create_application_request, project_values.name
         )
         assert isinstance(response, ApplicationWithLinkSchema)
-        assert response.deployment_link == "sampleProject-sample_app-example.com"
+        assert response.deployment_link == "MyPerfectApp-some-app-example.com"
         application_repository.create.assert_called_once()
-        manifest_builder.render_application.assert_called_once_with(
+        manifest_builder_service.render_application.assert_called_once_with(
             application=create_application_request.application
         )
 
@@ -225,14 +162,14 @@ class TestClusterManagerService:
     async def test_create_application_database_error(
         self,
         cluster_manager_service,
-        create_application_request,
         application_repository,
-        sample_project,
+        create_application_request,
+        project_values,
     ):
         application_repository.create.side_effect = SQLAlchemyError
         with pytest.raises(DatabaseError):
             await cluster_manager_service.create_application(
-                create_application_request, sample_project.name
+                create_application_request, project_values.name
             )
         application_repository.create.assert_called_once()
 
@@ -240,22 +177,22 @@ class TestClusterManagerService:
     async def test_create_application_cluster_error(
         self,
         cluster_manager_service,
-        create_application_request,
+        manifest_builder_service,
         application_repository,
-        manifest_builder,
-        sample_application,
-        sample_project,
+        create_application_request,
+        sample_application_model,
+        project_values,
     ):
         with patch("kubernetes.utils.create_from_dict") as mock_create_from_dict:
             mock_create_from_dict.side_effect = FailToCreateError([MockAPIException()])
             with pytest.raises(ClusterError):
                 await cluster_manager_service.create_application(
-                    create_application_request, sample_project.name
+                    create_application_request, project_values.name
                 )
             application_repository.create.assert_called_once()
             application_repository.delete.assert_called_once_with(
-                application=sample_application,
+                application=sample_application_model,
             )
-            manifest_builder.render_application.assert_called_once_with(
+            manifest_builder_service.render_application.assert_called_once_with(
                 application=create_application_request.application
             )
