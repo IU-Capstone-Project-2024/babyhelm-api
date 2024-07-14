@@ -95,7 +95,7 @@ async def restart_application(
 async def get_logs(
     project_name: str,
     application_name: str,
-    user_id: CURRENT_USER_ID_DEPENDENCY,
+    permitted=Depends(CheckUserPermissions(action=ActionEnum.READ.name)),
     cluster_manager_service: ClusterManagerService = Depends(
         Provide[ApplicationContainer.services.cluster_manager]
     ),

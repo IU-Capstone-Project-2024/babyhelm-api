@@ -191,14 +191,14 @@ class ClusterManagerService:
         )
         if application is None:
             raise ApplicationNotFound
-        return ApplicationSchema.from_orm(application)
+        return ApplicationSchema.model_validate(application)
 
     async def list_applications(self, project_name: str) -> list[ApplicationSchema]:
         project = await self.project_repository.get(ProjectModel.name == project_name)
         if project is None:
             raise ProjectNotFound
         applications = await self.application_repository.list(project_name=project_name)
-        return [ApplicationSchema.from_orm(app) for app in applications]
+        return [ApplicationSchema.model_validate(app) for app in applications]
 
     async def restart_application(self, project_name: str, application_name: str):
         application = await self.application_repository.get(
@@ -226,7 +226,9 @@ class ClusterManagerService:
             },
         )
 
-    async def add_new_user_to_the_project(self, user_email: str, project_name: str, role: str):
+    async def add_new_user_to_the_project(
+        self, user_email: str, project_name: str, role: str
+    ):
         user = await self.user_repository.get(UserModel.email == user_email)
         if user is None:
             raise UserNotFoundError
