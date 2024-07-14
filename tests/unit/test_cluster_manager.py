@@ -197,7 +197,7 @@ class TestClusterManagerService:
                 application=create_application_request.application
             )
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_get_application_logs_success(
         self, cluster_manager_service, sample_application_model
     ):
