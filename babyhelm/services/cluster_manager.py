@@ -249,5 +249,5 @@ class ClusterManagerService:
             log = v1_api.read_namespaced_pod_log(
                 name=pod_name, namespace=project_name, since_seconds=60 * 5
             )
-            res[pod_name] = log
+            res[pod_name] = log.split("\n")
         return res
