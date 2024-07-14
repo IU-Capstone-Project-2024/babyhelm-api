@@ -6,6 +6,7 @@ from dependency_injector.providers import (
     DependenciesContainer,
     Factory,
     Provider,
+    Singleton,
 )
 
 from babyhelm.containers.gateways import GatewaysContainer
@@ -32,13 +33,14 @@ class ServicesContainer(DeclarativeContainer):
         UserService,
         user_repository=repositories.user,
     )
-    auth: Provider[AuthService] = Factory[AuthService](
+    auth: Provider[AuthService] = Singleton[AuthService](
         AuthService,
         secret_key=config.auth.secret_key,
         algorithm="HS256",
         access_token_expiration=config.auth.access_token_expire_minutes,
         refresh_token_expiration=config.auth.refresh_token_expire_days,
         user_service=user,
+        project_repository=repositories.project,
     )
     cluster_manager: Provider[ClusterManagerService] = Factory[ClusterManagerService](
         ClusterManagerService,
