@@ -196,3 +196,47 @@ class TestClusterManagerService:
             manifest_builder_service.render_application.assert_called_once_with(
                 application=create_application_request.application
             )
+
+    @pytest.mark.asyncio
+    async def test_get_application_logs_success(
+        self, cluster_manager_service, sample_application_model
+    ):
+        v1_api_mock = MagicMock()
+        apps_v1_api_mock = MagicMock()
+
+        deployment = MagicMock()
+        deployment.spec.selector.match_labels = {
+            "app": sample_application_model.deployment_name
+        }
+
+        apps_v1_api_mock.read_namespaced_deployment.return_value = deployment
+        pod1 = MagicMock()
+        pod2 = MagicMock()
+        pod1.metadata.name = "pod-1"
+        pod2.metadata.name = "pod-2"
+
+        v1_api_mock.list_namespaced_pod.return_value = MagicMock(items=[pod1, pod2])
+        v1_api_mock.read_namespaced_pod_log.side_effect = [
+            "log-1-of-pod-1\nlog-2-of-pod-1",
+            "log-1-of-pod-2\nlog-2-of-pod-2",
+        ]
+
+        with patch.object(client, "CoreV1Api", return_value=v1_api_mock):
+            with patch.object(client, "AppsV1Api", return_value=apps_v1_api_mock):
+                logs = await cluster_manager_service.get_application_logs(
+                    sample_application_model.project_name, sample_application_model.name
+                )
+
+        assert {
+            "pod-1": ["log-1-of-pod-1", "log-2-of-pod-1"],
+            "pod-2": ["log-1-of-pod-2", "log-2-of-pod-2"],
+        } == logs
+        apps_v1_api_mock.read_namespaced_deployment.assert_called_once_with(
+            name=sample_application_model.deployment_name,
+            namespace=sample_application_model.project_name,
+        )
+        v1_api_mock.list_namespaced_pod.assert_called_once_with(
+            namespace=sample_application_model.project_name,
+            label_selector=f"app={sample_application_model.deployment_name}",
+        )
+        assert v1_api_mock.read_namespaced_pod_log.call_count == 2
