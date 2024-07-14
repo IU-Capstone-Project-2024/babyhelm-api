@@ -68,7 +68,7 @@ async def get_project(
 
 @router.post("/{project-name}/add_user", status_code=status.HTTP_200_OK)
 @inject
-async def add_user(
+async def add_user_to_the_project(
     project_name: str,
     request: AddUserToProjectRequestSchema,
     permitted=Depends(CheckUserPermissions(action=ActionEnum.ADD_NEW_USER.name)),
@@ -84,7 +84,7 @@ async def add_user(
 
 @router.delete("/{project-name}/delete_user", status_code=status.HTTP_200_OK)
 @inject
-async def delete_user(
+async def delete_user_from_the_project(
     project_name: str,
     request: DeleteUserFromProjectRequestSchema,
     permitted=Depends(CheckUserPermissions(action=ActionEnum.DELETE.name)),
