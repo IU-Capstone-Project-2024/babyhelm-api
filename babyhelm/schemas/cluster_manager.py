@@ -10,6 +10,10 @@ APPLICATION_EXAMPLE = {"name": "some-application", "image": "docker.io/nginx:lat
 APPLICATION_WITH_LINK_EXAMPLE = deepcopy(APPLICATION_EXAMPLE)
 APPLICATION_WITH_LINK_EXAMPLE["deployment_link"] = "https://some-link.com/my-app"
 
+APPLICATION_WITH_PAYLOAD_EXAMPLE = deepcopy(APPLICATION_WITH_LINK_EXAMPLE)
+APPLICATION_WITH_PAYLOAD_EXAMPLE["envs"] = [{"name": "key", "value": "value"}]
+APPLICATION_WITH_PAYLOAD_EXAMPLE["dashboard_link"] = "https://grafana-link.com/my-app"
+
 PROJECT_EXAMPLE = {
     "name": "some-project",
     "applications": [APPLICATION_EXAMPLE],
@@ -28,6 +32,17 @@ class ApplicationSchema(BaseModel):
 
     name: str
     image: str
+
+
+class ApplicationWithPayloadSchema(ApplicationSchema):
+    deployment_link: str | None = None
+    dashboard_link: str | None = None
+    envs: list | None = None
+
+    model_config = ConfigDict(
+        from_attributes=True,
+        json_schema_extra={"examples": [APPLICATION_WITH_PAYLOAD_EXAMPLE]},
+    )
 
 
 class ProjectSchema(BaseModel):

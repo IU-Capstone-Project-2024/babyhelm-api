@@ -5,6 +5,7 @@ from babyhelm.containers.application import ApplicationContainer
 from babyhelm.schemas.cluster_manager import (
     ApplicationSchema,
     ApplicationWithLinkSchema,
+    ApplicationWithPayloadSchema,
     CreateApplicationRequest,
 )
 from babyhelm.services.auth.dependencies import CheckUserPermissions
@@ -38,8 +39,8 @@ async def get_application(
     cluster_manager_service: ClusterManagerService = Depends(
         Provide[ApplicationContainer.services.cluster_manager]
     ),
-) -> ApplicationSchema:
-    application = await cluster_manager_service.get_application(
+) -> ApplicationWithPayloadSchema:
+    application = await cluster_manager_service.get_application_with_payload(
         project_name=project_name, application_name=application_name
     )
     return application

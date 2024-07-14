@@ -2,6 +2,7 @@ import datetime
 
 import yaml
 from kubernetes import client, config, utils
+from kubernetes.client import AppsV1Api
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import selectinload
 
@@ -25,6 +26,7 @@ from babyhelm.repositories.user import UserRepository
 from babyhelm.schemas.cluster_manager import (
     ApplicationSchema,
     ApplicationWithLinkSchema,
+    ApplicationWithPayloadSchema,
     CreateApplicationRequest,
     ProjectSchema,
 )
@@ -191,7 +193,35 @@ class ClusterManagerService:
         )
         if application is None:
             raise ApplicationNotFound
-        return ApplicationSchema.from_orm(application)
+        return ApplicationSchema.model_validate(application)
+
+    async def get_application_with_payload(
+        self, project_name: str, application_name: str
+    ) -> ApplicationWithPayloadSchema:
+        application = await self.application_repository.get(
+            project_name, application_name
+        )
+        if application is None:
+            raise ApplicationNotFound
+        app = ApplicationWithPayloadSchema.model_validate(application)
+        app.deployment_link = f"http://{application.project_name}-{application.name}-svc.taila53571.ts.net"
+        app.dashboard_link = (f"https://grafana.babyhelm.ru/d/bdrfw4gjaew3kf/"
+                              f"kubernetes-deployment-metrics?orgId=1&refresh=30"
+                              f"s&var-Deployment={application.deployment_name}")
+        app.envs = self._get_deployment_envs(project_name, application.deployment_name)
+        return app
+
+    def _get_deployment_envs(self, project_name: str, deployment_name: str):
+        v1 = AppsV1Api(self.k8s_client)
+        deployment = v1.read_namespaced_deployment(
+            name=deployment_name, namespace=project_name
+        )
+        envs = deployment.spec.template.spec.containers[0].env
+        return (
+            []
+            if envs is None
+            else [{"name": env.name, "value": env.value} for env in envs]
+        )
 
     async def list_applications(self, project_name: str) -> list[ApplicationSchema]:
         project = await self.project_repository.get(ProjectModel.name == project_name)
@@ -226,7 +256,9 @@ class ClusterManagerService:
             },
         )
 
-    async def add_new_user_to_the_project(self, user_email: str, project_name: str, role: str):
+    async def add_new_user_to_the_project(
+        self, user_email: str, project_name: str, role: str
+    ):
         user = await self.user_repository.get(UserModel.email == user_email)
         if user is None:
             raise UserNotFoundError
